@@ -11,13 +11,13 @@ export interface Book {
   rating?: 1 | 2 | 3 | 4 | 5;
   personalReview?: string;
   status: ReadingStatus;
-  addedDate: Date;
+  addedDate: string;
 }
 
-// Вспомогательный тип для создания новой книги (без id и даты)
 export type NewBook = Omit<Book, 'id' | 'addedDate'>;
 
-// Тип для фильтров
+export type UpdateBook = Partial<Omit<Book, 'id'>>;
+
 export interface BookFilters {
   searchTitle: string;
   searchAuthor: string;

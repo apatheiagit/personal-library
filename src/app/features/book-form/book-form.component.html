@@ -1,0 +1,88 @@
+<div class="book-form-container">
+  <h2>{{ isEditMode ? '✏️ Редактировать книгу' : '📚 Добавить новую книгу' }}</h2>
+  
+  <form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="title">Название книги *</label>
+      <input 
+        type="text" 
+        id="title" 
+        formControlName="title" 
+        placeholder="Введите название"
+        [class.is-invalid]="f['title'].invalid && f['title'].touched"
+      />
+      <div class="error-message" *ngIf="f['title'].invalid && f['title'].touched">
+        Название обязательно
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="author">Автор *</label>
+      <input 
+        type="text" 
+        id="author" 
+        formControlName="author" 
+        placeholder="Введите автора"
+        [class.is-invalid]="f['author'].invalid && f['author'].touched"
+      />
+      <div class="error-message" *ngIf="f['author'].invalid && f['author'].touched">
+        Автор обязателен
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="year">Год издания</label>
+      <input 
+        type="number" 
+        id="year" 
+        formControlName="year" 
+        placeholder="Год"
+        [class.is-invalid]="f['year'].invalid && f['year'].touched"
+      />
+      <div class="error-message" *ngIf="f['year'].invalid && f['year'].touched">
+        Введите корректный год
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="status">Статус</label>
+      <select id="status" formControlName="status">
+        <option [value]="ReadingStatus.READ">✅ Прочитано</option>
+        <option [value]="ReadingStatus.WANT_TO_READ">⭐ Хочу прочитать</option>
+      </select>
+    </div>
+
+    <div class="form-group" *ngIf="bookForm.get('status')?.value === ReadingStatus.READ">
+      <label for="rating">Оценка (1-5)</label>
+      <div class="rating-input">
+        <button 
+          type="button" 
+          *ngFor="let star of [1,2,3,4,5]" 
+          class="star-btn"
+          [class.active]="f['rating'].value >= star"
+          (click)="f['rating'].setValue(star)">
+          ⭐
+        </button>
+      </div>
+      <input type="hidden" formControlName="rating" />
+    </div>
+
+    <div class="form-group" *ngIf="bookForm.get('status')?.value === ReadingStatus.READ">
+      <label for="personalReview">Личный отзыв</label>
+      <textarea 
+        id="personalReview" 
+        formControlName="personalReview" 
+        rows="5" 
+        placeholder="Напишите свои впечатления о книге..."></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="router.navigate(['/books'])">
+        Отмена
+      </button>
+      <button type="submit" class="btn-submit" [disabled]="loading">
+        {{ loading ? 'Сохранение...' : (isEditMode ? 'Обновить' : 'Добавить') }}
+      </button>
+    </div>
+  </form>
+</div>

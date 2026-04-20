@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BookService } from '../../core/services/book.service';
@@ -14,9 +14,11 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./book-list.component.css']
 })
 export class BookListComponent implements OnInit, OnDestroy {
+  public bookService = inject(BookService);
   books: Book[] = [];
   filteredBooks: Book[] = [];
-  private subscription = new Subscription();
+  loading = false;
+  private subscriptions = new Subscription();
   
   filters: BookFilters = {
     searchTitle: '',
@@ -24,10 +26,14 @@ export class BookListComponent implements OnInit, OnDestroy {
     rating: undefined
   };
 
-  constructor(private bookService: BookService) {}
-
   ngOnInit(): void {
-    this.subscription.add(
+    this.subscriptions.add(
+      this.bookService.loading$.subscribe(loading => {
+        this.loading = loading;
+      })
+    );
+    
+    this.subscriptions.add(
       this.bookService.getReadBooks().subscribe(books => {
         this.books = books;
         this.applyFilters();
@@ -37,15 +43,12 @@ export class BookListComponent implements OnInit, OnDestroy {
 
   applyFilters(): void {
     this.filteredBooks = this.books.filter(book => {
-      // Фильтр по названию
       const matchTitle = this.filters.searchTitle === '' || 
         book.title.toLowerCase().includes(this.filters.searchTitle.toLowerCase());
       
-      // Фильтр по автору
       const matchAuthor = this.filters.searchAuthor === '' || 
         book.author.toLowerCase().includes(this.filters.searchAuthor.toLowerCase());
       
-      // Фильтр по оценке
       const matchRating = !this.filters.rating || 
         book.rating === this.filters.rating;
       
@@ -68,12 +71,16 @@ export class BookListComponent implements OnInit, OnDestroy {
 
   deleteBook(id: string): void {
     if (confirm('Вы уверены, что хотите удалить эту книгу?')) {
-      this.bookService.deleteBook(id);
+      this.bookService.deleteBook(id).subscribe({
+        error: (error) => console.error('Ошибка удаления:', error)
+      });
     }
   }
 
   moveToWishlist(id: string): void {
-    this.bookService.changeStatus(id, ReadingStatus.WANT_TO_READ);
+    this.bookService.changeStatus(id, ReadingStatus.WANT_TO_READ).subscribe({
+      error: (error) => console.error('Ошибка изменения статуса:', error)
+    });
   }
 
   getStarArray(rating?: number): number[] {
@@ -81,6 +88,6 @@ export class BookListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 }

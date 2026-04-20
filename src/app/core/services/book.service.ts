@@ -1,32 +1,37 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, map } from 'rxjs';
-import { Book, NewBook, ReadingStatus } from '../models/book.model';
-import { StorageService } from './storage.service';
-import { v4 as uuidv4 } from 'uuid';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { map, catchError, tap, switchMap } from 'rxjs/operators';
+import { Book, NewBook, ReadingStatus, UpdateBook } from '../models/book.model';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookService {
+  private apiService = inject(ApiService);
   private booksSubject = new BehaviorSubject<Book[]>([]);
   public books$ = this.booksSubject.asObservable();
+  private loadingSubject = new BehaviorSubject<boolean>(false);
+  public loading$ = this.loadingSubject.asObservable();
 
-  constructor(private storageService: StorageService) {
+  constructor() {
     this.loadBooks();
   }
 
-  private loadBooks(): void {
-    const books = this.storageService.getBooks();
-    this.booksSubject.next(books);
-  }
-
-  private saveBooks(books: Book[]): void {
-    this.storageService.saveBooks(books);
-    this.booksSubject.next(books);
-  }
-
-  getAllBooks(): Book[] {
-    return this.booksSubject.getValue();
+  loadBooks(): void {
+    this.loadingSubject.next(true);
+    this.apiService.getBooks()
+      .pipe(
+        catchError(error => {
+          console.error('Ошибка загрузки книг:', error);
+          this.loadingSubject.next(false);
+          return throwError(() => error);
+        })
+      )
+      .subscribe(books => {
+        this.booksSubject.next(books);
+        this.loadingSubject.next(false);
+      });
   }
 
   getReadBooks(): Observable<Book[]> {
@@ -41,62 +46,89 @@ export class BookService {
     );
   }
 
-  getBookById(id: string): Book | undefined {
-    return this.getAllBooks().find(book => book.id === id);
+  getBookById(id: string): Observable<Book> {
+    return this.apiService.getBookById(id);
   }
 
-  addBook(newBook: NewBook): void {
-    const book: Book = {
+  addBook(newBook: NewBook): Observable<Book> {
+    const bookToAdd = {
       ...newBook,
-      id: uuidv4(),
-      addedDate: new Date()
+      addedDate: new Date().toISOString()
     };
     
-    const currentBooks = this.getAllBooks();
-    this.saveBooks([...currentBooks, book]);
+    return this.apiService.addBook(bookToAdd).pipe(
+      tap(addedBook => {
+        const currentBooks = this.booksSubject.getValue();
+        this.booksSubject.next([...currentBooks, addedBook]);
+      })
+    );
   }
 
-  updateBook(updatedBook: Book): void {
-    const currentBooks = this.getAllBooks();
-    const index = currentBooks.findIndex(book => book.id === updatedBook.id);
-    
-    if (index !== -1) {
-      currentBooks[index] = updatedBook;
-      this.saveBooks([...currentBooks]);
-    }
+  updateBook(id: string, updatedBook: Book): Observable<Book> {
+    return this.apiService.updateBook(id, updatedBook).pipe(
+      tap(book => {
+        const currentBooks = this.booksSubject.getValue();
+        const index = currentBooks.findIndex(b => b.id === id);
+        if (index !== -1) {
+          currentBooks[index] = book;
+          this.booksSubject.next([...currentBooks]);
+        }
+      })
+    );
   }
 
-  deleteBook(id: string): void {
-    const currentBooks = this.getAllBooks();
-    this.saveBooks(currentBooks.filter(book => book.id !== id));
+  patchBook(id: string, updates: UpdateBook): Observable<Book> {
+    return this.apiService.patchBook(id, updates).pipe(
+      tap(updatedBook => {
+        const currentBooks = this.booksSubject.getValue();
+        const index = currentBooks.findIndex(b => b.id === id);
+        if (index !== -1) {
+          currentBooks[index] = updatedBook;
+          this.booksSubject.next([...currentBooks]);
+        }
+      })
+    );
   }
 
-  changeStatus(id: string, newStatus: ReadingStatus): void {
-    const book = this.getBookById(id);
-    if (!book) return;
+  deleteBook(id: string): Observable<void> {
+    return this.apiService.deleteBook(id).pipe(
+      tap(() => {
+        const currentBooks = this.booksSubject.getValue();
+        this.booksSubject.next(currentBooks.filter(book => book.id !== id));
+      })
+    );
+  }
 
-    let updatedBook: Book;
+  changeStatus(id: string, newStatus: ReadingStatus): Observable<Book> {
+    let updates: UpdateBook = { status: newStatus };
     
     if (newStatus === ReadingStatus.READ) {
-      updatedBook = {
-        ...book,
-        status: newStatus,
+      updates = {
+        ...updates,
         rating: undefined,
         personalReview: undefined
       };
-    } else {
-      const { rating, personalReview, ...rest } = book;
-      updatedBook = {
-        ...rest,
-        status: newStatus
-      };
     }
     
-    this.updateBook(updatedBook);
+    return this.patchBook(id, updates);
+  }
+
+  filterBooks(filters: { title?: string; author?: string; rating?: number; status?: string }): Observable<Book[]> {
+    this.loadingSubject.next(true);
+    return this.apiService.getFilteredBooks(filters).pipe(
+      tap(books => {
+        this.booksSubject.next(books);
+        this.loadingSubject.next(false);
+      }),
+      catchError(error => {
+        this.loadingSubject.next(false);
+        return throwError(() => error);
+      })
+    );
   }
 
   getStatistics() {
-    const books = this.getAllBooks();
+    const books = this.booksSubject.getValue();
     const readBooks = books.filter(b => b.status === ReadingStatus.READ);
     const wishlistBooks = books.filter(b => b.status === ReadingStatus.WANT_TO_READ);
     
@@ -105,28 +137,22 @@ export class BookService {
       ? ratings.reduce((a, b) => a + b, 0) / ratings.length 
       : 0;
     
+    const byYear = readBooks.reduce((acc, book) => {
+      const year = book.year || 0;
+      acc[year] = (acc[year] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
+    
     return {
       totalRead: readBooks.length,
       totalWishlist: wishlistBooks.length,
       averageRating: parseFloat(averageRating.toFixed(1)),
-      totalBooks: books.length
+      totalBooks: books.length,
+      byYear
     };
   }
 
-  exportData(): string {
-    return JSON.stringify(this.getAllBooks(), null, 2);
-  }
-
-  importData(jsonData: string): boolean {
-    try {
-      const books = JSON.parse(jsonData) as Book[];
-      if (Array.isArray(books)) {
-        this.saveBooks(books);
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
+  refresh(): void {
+    this.loadBooks();
   }
 }
