@@ -1,42 +1,36 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookService } from '../../core/services/book.service';
-import { Subscription } from 'rxjs';
+import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-statistics',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ErrorDisplayComponent],
   templateUrl: './statistics.component.html',
-  styleUrls: ['./statistics.component.css']
+  styleUrls: ['./statistics.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StatisticsComponent implements OnInit, OnDestroy {
-  public bookService = inject(BookService);
-  stats = {
-    totalRead: 0,
-    totalWishlist: 0,
-    averageRating: 0,
-    totalBooks: 0,
-    byYear: {} as Record<number, number>
-  };
+export class StatisticsComponent {
+  private bookService = inject(BookService);
+  stats$ = this.bookService.statistics$;
+  loading$ = this.bookService.loading$;
+  error$ = this.bookService.error$;
   
-  private subscription = new Subscription();
+  yearEntries$ = this.stats$.pipe(
+    map(stats => 
+      Object.entries(stats.byYear)
+        .map(([year, count]) => ({ year: parseInt(year), count }))
+        .sort((a, b) => b.year - a.year)
+    )
+  );
 
-  ngOnInit(): void {
-    this.subscription.add(
-      this.bookService.books$.subscribe(() => {
-        this.stats = this.bookService.getStatistics();
-      })
-    );
+  refresh(): void {
+    this.bookService.refresh();
   }
 
-  getYearEntries(): { year: number; count: number }[] {
-    return Object.entries(this.stats.byYear)
-      .map(([year, count]) => ({ year: parseInt(year), count }))
-      .sort((a, b) => b.year - a.year);
-  }
-
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+  clearError(): void {
+    this.bookService.clearError();
   }
 }

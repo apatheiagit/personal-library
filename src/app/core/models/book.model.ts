@@ -3,12 +3,14 @@ export enum ReadingStatus {
   WANT_TO_READ = 'want-to-read'
 }
 
+export type Rating = 1 | 2 | 3 | 4 | 5;
+
 export interface Book {
   id: string;
   title: string;
   author: string;
   year?: number | null;
-  rating?: 1 | 2 | 3 | 4 | 5;
+  rating?: Rating;
   personalReview?: string;
   status: ReadingStatus;
   addedDate: string;
@@ -21,5 +23,5 @@ export type UpdateBook = Partial<Omit<Book, 'id'>>;
 export interface BookFilters {
   searchTitle: string;
   searchAuthor: string;
-  rating?: 1 | 2 | 3 | 4 | 5;
+  rating?: Rating;
 }

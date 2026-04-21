@@ -1,3 +1,5 @@
+<app-error-display />
+
 <div class="wishlist-container">
   <div class="header">
     <h2>⭐ Список желаемых книг</h2>
@@ -5,32 +7,78 @@
   </div>
 
   <div class="search-box">
-    <input 
-      type="text" 
-      [(ngModel)]="searchTerm"
-      (input)="applyFilter()"
-      placeholder="🔍 Поиск по названию или автору..."
-    />
-  </div>
-
-  <div class="books-grid">
-    <div *ngFor="let book of filteredBooks" class="book-card">
-      <div class="book-header">
-        <h3>{{ book.title }}</h3>
-        <p>{{ book.author }}</p>
-        <small *ngIf="book.year">{{ book.year }}</small>
-      </div>
-      
-      <div class="book-actions">
-        <button class="btn-move" (click)="moveToRead(book.id)">📖 Прочитал(а)</button>
-        <button class="btn-edit" [routerLink]="['/book/edit', book.id]">✏️</button>
-        <button class="btn-delete" (click)="deleteBook(book.id)">🗑️</button>
-      </div>
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        #searchInput
+        (input)="onSearch(searchInput.value)"
+        placeholder="Поиск по названию или автору..."
+        class="search-input"
+      />
+      <button 
+        *ngIf="searchInput.value" 
+        class="search-clear" 
+        (click)="clearSearch(); searchInput.value = ''">
+        ✕
+      </button>
     </div>
-
-    <div *ngIf="filteredBooks.length === 0" class="empty-state">
-      <p>📚 Список желаний пуст</p>
-      <button routerLink="/book/add">Добавить книгу</button>
+    <div class="search-info" *ngIf="booksCount$ | async as count">
+      Найдено книг: {{ count }}
     </div>
   </div>
+
+  <div *ngIf="loading$ | async" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Загрузка списка желаний...</p>
+  </div>
+
+  <div *ngIf="(error$ | async) && !(loading$ | async)" class="error-state">
+    <p>⚠️ {{ error$ | async }}</p>
+    <button (click)="clearError()" class="btn-retry">Повторить</button>
+  </div>
+
+  <ng-container *ngIf="!(loading$ | async) && !(error$ | async)">
+    <div class="books-grid">
+      <div *ngFor="let book of filteredBooks$ | async" class="book-card">
+        <div class="book-header">
+          <h3 class="book-title">{{ book.title }}</h3>
+          <p class="book-author">{{ book.author }}</p>
+          <div class="book-meta">
+            <span class="book-year" *ngIf="book.year">📅 {{ book.year }}</span>
+            <span class="book-date">➕ {{ book.addedDate | date:'dd.MM.yyyy' }}</span>
+          </div>
+        </div>
+        
+        <div class="book-actions">
+          <button class="btn-move" (click)="moveToRead(book.id)" title="Переместить в прочитанные">
+            📖 Прочитал(а)
+          </button>
+          <button class="btn-edit" [routerLink]="['/book/edit', book.id]" title="Редактировать">
+            ✏️
+          </button>
+          <button class="btn-delete" (click)="deleteBook(book.id)" title="Удалить">
+            🗑️
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="(filteredBooks$ | async)?.length === 0" class="empty-state">
+        <div class="empty-icon">📚</div>
+        <p *ngIf="(searchTerm$ | async); else noSearch">
+          Ничего не найдено по вашему запросу
+        </p>
+        <ng-template #noSearch>
+          <p>Список желаний пуст</p>
+          <p class="empty-hint">Добавьте книги, которые хотите прочитать</p>
+        </ng-template>
+        <button routerLink="/book/add" class="btn-add-empty">
+          + Добавить первую книгу
+        </button>
+        <button *ngIf="searchTerm$ | async" (click)="clearSearch()" class="btn-clear-search">
+          Очистить поиск
+        </button>
+      </div>
+    </div>
+  </ng-container>
 </div>

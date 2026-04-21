@@ -1,32 +1,45 @@
+<app-error-display />
+
 <div class="book-form-container">
-  <h2>{{ isEditMode ? '✏️ Редактировать книгу' : '📚 Добавить новую книгу' }}</h2>
+  <h2>
+    {{ (isEditMode$ | async) ? '✏️ Редактировать книгу' : '📚 Добавить новую книгу' }}
+  </h2>
   
+  <div *ngIf="loading$ | async" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Сохранение...</p>
+  </div>
+
   <form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
     <div class="form-group">
-      <label for="title">Название книги *</label>
+      <label for="title">
+        Название книги <span class="required">*</span>
+      </label>
       <input 
         type="text" 
         id="title" 
         formControlName="title" 
         placeholder="Введите название"
-        [class.is-invalid]="f['title'].invalid && f['title'].touched"
+        [class.is-invalid]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched"
       />
-      <div class="error-message" *ngIf="f['title'].invalid && f['title'].touched">
-        Название обязательно
+      <div class="error-message" *ngIf="bookForm.get('title')?.touched">
+        {{ getFieldError('title') }}
       </div>
     </div>
 
     <div class="form-group">
-      <label for="author">Автор *</label>
+      <label for="author">
+        Автор <span class="required">*</span>
+      </label>
       <input 
         type="text" 
         id="author" 
         formControlName="author" 
         placeholder="Введите автора"
-        [class.is-invalid]="f['author'].invalid && f['author'].touched"
+        [class.is-invalid]="bookForm.get('author')?.invalid && bookForm.get('author')?.touched"
       />
-      <div class="error-message" *ngIf="f['author'].invalid && f['author'].touched">
-        Автор обязателен
+      <div class="error-message" *ngIf="bookForm.get('author')?.touched">
+        {{ getFieldError('author') }}
       </div>
     </div>
 
@@ -37,10 +50,10 @@
         id="year" 
         formControlName="year" 
         placeholder="Год"
-        [class.is-invalid]="f['year'].invalid && f['year'].touched"
+        [class.is-invalid]="bookForm.get('year')?.invalid && bookForm.get('year')?.touched"
       />
-      <div class="error-message" *ngIf="f['year'].invalid && f['year'].touched">
-        Введите корректный год
+      <div class="error-message" *ngIf="bookForm.get('year')?.touched">
+        {{ getFieldError('year') }}
       </div>
     </div>
 
@@ -53,18 +66,22 @@
     </div>
 
     <div class="form-group" *ngIf="bookForm.get('status')?.value === ReadingStatus.READ">
-      <label for="rating">Оценка (1-5)</label>
+      <label for="rating">
+        Оценка <span class="required">*</span>
+      </label>
       <div class="rating-input">
         <button 
           type="button" 
           *ngFor="let star of [1,2,3,4,5]" 
           class="star-btn"
-          [class.active]="f['rating'].value >= star"
-          (click)="f['rating'].setValue(star)">
+          [class.active]="(bookForm.get('rating')?.value || 0) >= star"
+          (click)="setRating(star)">
           ⭐
         </button>
       </div>
-      <input type="hidden" formControlName="rating" />
+      <div class="error-message" *ngIf="bookForm.get('rating')?.touched && bookForm.get('rating')?.invalid">
+        {{ getFieldError('rating') }}
+      </div>
     </div>
 
     <div class="form-group" *ngIf="bookForm.get('status')?.value === ReadingStatus.READ">
@@ -74,15 +91,30 @@
         formControlName="personalReview" 
         rows="5" 
         placeholder="Напишите свои впечатления о книге..."></textarea>
+      <div class="hint" *ngIf="bookForm.get('personalReview')?.value?.length">
+        {{ bookForm.get('personalReview')?.value?.length }}/1000 символов
+      </div>
+    </div>
+
+    <div class="info-box" *ngIf="bookForm.get('status')?.value === ReadingStatus.WANT_TO_READ">
+      <span class="info-icon">ℹ️</span>
+      <p>Книга будет добавлена в список "Хочу прочитать". Оценку и отзыв можно будет добавить позже, когда вы прочитаете книгу.</p>
     </div>
 
     <div class="form-actions">
-      <button type="button" class="btn-cancel" (click)="router.navigate(['/books'])">
+      <button type="button" class="btn-cancel" (click)="cancel()">
         Отмена
       </button>
-      <button type="submit" class="btn-submit" [disabled]="loading">
-        {{ loading ? 'Сохранение...' : (isEditMode ? 'Обновить' : 'Добавить') }}
+      <button 
+        type="submit" 
+        class="btn-submit" 
+        [disabled]="(loading$ | async) || bookForm.invalid">
+        {{ (loading$ | async) ? 'Сохранение...' : ((isEditMode$ | async) ? 'Обновить' : 'Добавить') }}
       </button>
     </div>
   </form>
+
+  <div class="unsaved-indicator" *ngIf="bookForm.dirty && !(loading$ | async)">
+    <span>⚠️ Есть несохраненные изменения</span>
+  </div>
 </div>

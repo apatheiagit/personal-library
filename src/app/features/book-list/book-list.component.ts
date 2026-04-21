@@ -1,93 +1,57 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BookService } from '../../core/services/book.service';
-import { Book, ReadingStatus, BookFilters } from '../../core/models/book.model';
-import { Subscription } from 'rxjs';
-import { FormsModule } from '@angular/forms';
+import { FilterService } from '../../core/services/filter.service';
+import { Rating, ReadingStatus } from '../../core/models/book.model';
+import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
 
 @Component({
   selector: 'app-book-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, ErrorDisplayComponent],
   templateUrl: './book-list.component.html',
-  styleUrls: ['./book-list.component.css']
+  styleUrls: ['./book-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BookListComponent implements OnInit, OnDestroy {
-  public bookService = inject(BookService);
-  books: Book[] = [];
-  filteredBooks: Book[] = [];
-  loading = false;
-  private subscriptions = new Subscription();
+export class BookListComponent {
+  private bookService = inject(BookService);
+  private filterService = inject(FilterService);
+
+  loading$ = this.bookService.loading$;
+  books$ = this.bookService.filterBooks(this.filterService.filters$);
   
-  filters: BookFilters = {
-    searchTitle: '',
-    searchAuthor: '',
-    rating: undefined
-  };
+  filteredBooks$ = this.bookService.filterBooks(this.filterService.filters$);
+  hasActiveFilters$ = this.filterService.hasActiveFilters$;
 
-  ngOnInit(): void {
-    this.subscriptions.add(
-      this.bookService.loading$.subscribe(loading => {
-        this.loading = loading;
-      })
-    );
-    
-    this.subscriptions.add(
-      this.bookService.getReadBooks().subscribe(books => {
-        this.books = books;
-        this.applyFilters();
-      })
-    );
+  onTitleSearch(title: string): void {
+    this.filterService.setTitle(title);
   }
 
-  applyFilters(): void {
-    this.filteredBooks = this.books.filter(book => {
-      const matchTitle = this.filters.searchTitle === '' || 
-        book.title.toLowerCase().includes(this.filters.searchTitle.toLowerCase());
-      
-      const matchAuthor = this.filters.searchAuthor === '' || 
-        book.author.toLowerCase().includes(this.filters.searchAuthor.toLowerCase());
-      
-      const matchRating = !this.filters.rating || 
-        book.rating === this.filters.rating;
-      
-      return matchTitle && matchAuthor && matchRating;
-    });
+  onAuthorSearch(author: string): void {
+    this.filterService.setAuthor(author);
   }
 
-  onFilterChange(): void {
-    this.applyFilters();
+  onRatingChange(rating: string): void {
+    const ratingValue = rating ? (parseInt(rating) as Rating) : undefined;
+    this.filterService.setRating(ratingValue);
   }
 
   clearFilters(): void {
-    this.filters = {
-      searchTitle: '',
-      searchAuthor: '',
-      rating: undefined
-    };
-    this.applyFilters();
+    this.filterService.clearFilters();
   }
 
   deleteBook(id: string): void {
     if (confirm('Вы уверены, что хотите удалить эту книгу?')) {
-      this.bookService.deleteBook(id).subscribe({
-        error: (error) => console.error('Ошибка удаления:', error)
-      });
+      this.bookService.deleteBook(id).subscribe();
     }
   }
 
   moveToWishlist(id: string): void {
-    this.bookService.changeStatus(id, ReadingStatus.WANT_TO_READ).subscribe({
-      error: (error) => console.error('Ошибка изменения статуса:', error)
-    });
+    this.bookService.changeStatus(id, ReadingStatus.WANT_TO_READ).subscribe();
   }
 
   getStarArray(rating?: number): number[] {
     return rating ? Array(rating).fill(0) : [];
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 }

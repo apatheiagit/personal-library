@@ -1,44 +1,65 @@
+<app-error-display />
+
 <div class="statistics-container">
   <h2>📊 Статистика чтения</h2>
   
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-value">{{ stats.totalRead }}</div>
-      <div class="stat-label">Книг прочитано</div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-value">{{ stats.totalWishlist }}</div>
-      <div class="stat-label">В списке желаний</div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-value">{{ stats.averageRating }}</div>
-      <div class="stat-label">Средняя оценка</div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-value">{{ stats.totalBooks }}</div>
-      <div class="stat-label">Всего книг</div>
-    </div>
+  <div *ngIf="loading$ | async" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Загрузка статистики...</p>
   </div>
 
-  <div class="yearly-stats" *ngIf="getYearEntries().length > 0">
-    <h3>Книги по годам издания</h3>
-    <div class="year-bars">
-      <div *ngFor="let item of getYearEntries()" class="year-bar">
-        <div class="year-label">{{ item.year }}</div>
-        <div class="bar-container">
-          <div class="bar" [style.width.%]="(item.count / stats.totalRead) * 100"></div>
-          <span class="count">{{ item.count }}</span>
-        </div>
+  <div *ngIf="(error$ | async) && !(loading$ | async)" class="error-state">
+    <p>⚠️ {{ error$ | async }}</p>
+    <button (click)="clearError()" class="btn-retry">Повторить</button>
+  </div>
+
+  <ng-container *ngIf="!(loading$ | async) && !(error$ | async)">
+    <div class="stats-grid" *ngIf="stats$ | async as stats">
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalRead }}</div>
+        <div class="stat-label">Книг прочитано</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalWishlist }}</div>
+        <div class="stat-label">В списке желаний</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.averageRating }}</div>
+        <div class="stat-label">Средняя оценка</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalBooks }}</div>
+        <div class="stat-label">Всего книг</div>
       </div>
     </div>
-  </div>
 
-  <div class="refresh-button">
-    <button (click)="bookService.refresh()" class="btn-refresh">
-      🔄 Обновить статистику
-    </button>
-  </div>
+    <!-- График по годам -->
+    <div class="yearly-stats" *ngIf="yearEntries$ | async as yearEntries">
+      <h3>📅 Книги по годам издания</h3>
+      <div class="year-bars" *ngIf="yearEntries.length > 0">
+        <div *ngFor="let item of yearEntries" class="year-bar">
+          <div class="year-label">{{ item.year }}</div>
+          <div class="bar-container">
+            <div class="bar" 
+                 [style.width.%]="(item.count / ((stats$ | async)?.totalRead || 1)) * 100">
+              <span class="bar-value">{{ item.count }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="yearEntries.length === 0" class="no-data">
+        <p>Нет данных о годах издания</p>
+      </div>
+    </div>
+
+    <!-- Кнопка обновления -->
+    <div class="refresh-button">
+      <button (click)="refresh()" class="btn-refresh">
+        🔄 Обновить статистику
+      </button>
+    </div>
+  </ng-container>
 </div>

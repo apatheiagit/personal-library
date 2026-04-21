@@ -1,73 +1,120 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BookService } from '../../core/services/book.service';
-import { ReadingStatus } from '../../core/models/book.model';
-import { finalize } from 'rxjs/operators';
+import { Rating, ReadingStatus } from '../../core/models/book.model';
+import { debounceTime, filter, finalize, map, shareReplay, startWith, switchMap, takeUntil } from 'rxjs/operators';
+import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
+import { combineLatest, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-book-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ErrorDisplayComponent],
   templateUrl: './book-form.component.html',
-  styleUrls: ['./book-form.component.css']
+  styleUrls: ['./book-form.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BookFormComponent implements OnInit {
+export class BookFormComponent implements OnDestroy {
   public router = inject(Router);
   public bookService = inject(BookService);
   bookForm: FormGroup;
-  isEditMode = false;
-  bookId: string | null = null;
-  loading = false;
   ReadingStatus = ReadingStatus;
+  private destroy$ = new Subject<void>();
+
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
 
+  private bookId$ = this.route.paramMap.pipe(
+    map(params => params.get('id'))
+  );
+  
+  isEditMode$ = this.bookId$.pipe(
+    map(id => !!id),
+    shareReplay(1)
+  );
+  
+  bookToEdit$ = combineLatest([this.bookId$, this.isEditMode$]).pipe(
+    filter(([id, isEdit]) => isEdit && !!id),
+    switchMap(([id]) => this.bookService.getBookById(id!)),
+    shareReplay(1)
+  );
+  
+  loading$ = new Subject<boolean>();
+  
+  validationErrors$: unknown;
+
   constructor() {
     this.bookForm = this.fb.group({
-      title: ['', [Validators.required, Validators.minLength(1)]],
-      author: ['', [Validators.required, Validators.minLength(2)]],
+      title: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(200)]],
+      author: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       year: [null, [Validators.min(0), Validators.max(new Date().getFullYear())]],
       status: [ReadingStatus.READ, Validators.required],
       rating: [null],
       personalReview: ['']
     });
+    this.loadBookIfEditMode();
+    this.setupStatusListener();
+    this.setupAutoSave();
+    this.validationErrors$ = this.bookForm.statusChanges.pipe(
+      startWith(this.bookForm.status),
+      map(() => {
+        const errors: any = {};
+        Object.keys(this.bookForm.controls).forEach(key => {
+          const control = this.bookForm.get(key);
+          if (control?.invalid && control?.touched) {
+            errors[key] = control.errors;
+          }
+        });
+        return errors;
+      })
+    );
   }
 
-  ngOnInit(): void {
-    this.bookId = this.route.snapshot.paramMap.get('id');
-    if (this.bookId) {
-      this.isEditMode = true;
-      this.loadBook();
-    }
+  private loadBookIfEditMode(): void {
+    this.bookToEdit$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(book => {
+      this.bookForm.patchValue({
+        title: book.title,
+        author: book.author,
+        year: book.year,
+        status: book.status,
+        rating: book.rating || null,
+        personalReview: book.personalReview || ''
+      });
+      this.toggleRatingReviewFields(book.status);
+    });
+  }
 
-    this.bookForm.get('status')?.valueChanges.subscribe(status => {
+  private setupStatusListener(): void {
+    this.bookForm.get('status')?.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(status => {
       this.toggleRatingReviewFields(status);
     });
   }
 
-  loadBook(): void {
-    this.loading = true;
-    this.bookService.getBookById(this.bookId!).pipe(
-      finalize(() => this.loading = false)
-    ).subscribe({
-      next: (book) => {
-        this.bookForm.patchValue({
-          title: book.title,
-          author: book.author,
-          year: book.year,
-          status: book.status,
-          rating: book.rating || null,
-          personalReview: book.personalReview || ''
-        });
-        this.toggleRatingReviewFields(book.status);
-      },
-      error: (error) => {
-        console.error('Ошибка загрузки книги:', error);
-        alert('Не удалось загрузить книгу');
+  private setupAutoSave(): void {
+    this.bookForm.valueChanges.pipe(
+      filter(() => this.bookForm.valid),
+      debounceTime(30000),
+      takeUntil(this.destroy$)
+    ).subscribe(formValue => {
+      if (formValue.title && formValue.author) {
+        localStorage.setItem('book_draft', JSON.stringify(formValue));
+        console.log('Черновик сохранен');
       }
     });
+    
+    const draft = localStorage.getItem('book_draft');
+    if (draft && !this.route.snapshot.paramMap.get('id')) {
+      const draftData = JSON.parse(draft);
+      if (confirm('Найден несохраненный черновик. Загрузить?')) {
+        this.bookForm.patchValue(draftData);
+      }
+    }
   }
 
   toggleRatingReviewFields(status: ReadingStatus): void {
@@ -75,8 +122,8 @@ export class BookFormComponent implements OnInit {
     const reviewControl = this.bookForm.get('personalReview');
     
     if (status === ReadingStatus.READ) {
-      ratingControl?.setValidators([Validators.min(1), Validators.max(5)]);
-      reviewControl?.setValidators([]);
+      ratingControl?.setValidators([Validators.required, Validators.min(1), Validators.max(5)]);
+      reviewControl?.setValidators([Validators.maxLength(1000)]);
     } else {
       ratingControl?.clearValidators();
       reviewControl?.clearValidators();
@@ -88,57 +135,87 @@ export class BookFormComponent implements OnInit {
     reviewControl?.updateValueAndValidity();
   }
 
+  setRating(rating: number): void {
+    this.bookForm.get('rating')?.setValue(rating as Rating);
+  }
+
   onSubmit(): void {
     if (this.bookForm.invalid) {
-      Object.keys(this.bookForm.controls).forEach(key => {
-        const control = this.bookForm.get(key);
-        control?.markAsTouched();
-      });
+      this.markAllTouched();
       return;
     }
 
     const formValue = this.bookForm.value;
     
     if (formValue.status !== ReadingStatus.READ) {
-      formValue.rating = undefined;
-      formValue.personalReview = undefined;
+      delete formValue.rating;
+      delete formValue.personalReview;
     }
 
-    this.loading = true;
-
-    if (this.isEditMode && this.bookId) {
-      this.bookService.getBookById(this.bookId).subscribe(book => {
-        const updatedBook = { ...book, ...formValue };
-        this.bookService.updateBook(this.bookId!, updatedBook).pipe(
-          finalize(() => this.loading = false)
-        ).subscribe({
-          next: () => {
-            alert('Книга успешно обновлена!');
-            this.router.navigate(['/books']);
-          },
-          error: (error) => {
-            console.error('Ошибка обновления:', error);
-            alert('Ошибка при обновлении книги');
-          }
-        });
-      });
-    } else {
-      this.bookService.addBook(formValue).pipe(
-        finalize(() => this.loading = false)
-      ).subscribe({
-        next: () => {
-          alert('Книга успешно добавлена!');
-          this.router.navigate(['/books']);
-        },
-        error: (error) => {
-          console.error('Ошибка добавления:', error);
-          alert('Ошибка при добавлении книги');
+    this.loading$.next(true);
+    
+    const saveOperation$ = this.isEditMode$.pipe(
+      switchMap(isEdit => {
+        if (isEdit) {
+          return this.bookId$.pipe(
+            switchMap(id => this.bookService.getBookById(id!)),
+            switchMap(book => this.bookService.updateBook(book.id, { ...book, ...formValue }))
+          );
+        } else {
+          return this.bookService.addBook(formValue);
         }
-      });
+      })
+    );
+    
+    saveOperation$.pipe(
+      finalize(() => this.loading$.next(false)),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        localStorage.removeItem('book_draft');
+        alert('Книга успешно сохранена!');
+        this.router.navigate(['/books']);
+      },
+      error: (error) => {
+        console.error('Ошибка сохранения:', error);
+      }
+    });
+  }
+
+  private markAllTouched(): void {
+    Object.keys(this.bookForm.controls).forEach(key => {
+      const control = this.bookForm.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  getFieldError(fieldName: string): string {
+    const control = this.bookForm.get(fieldName);
+    if (!control || !control.errors || !control.touched) return '';
+    
+    const errors = control.errors;
+    if (errors['required']) return 'Это поле обязательно';
+    if (errors['minlength']) return `Минимум ${errors['minlength'].requiredLength} символов`;
+    if (errors['maxlength']) return `Максимум ${errors['maxlength'].requiredLength} символов`;
+    if (errors['min']) return `Минимальное значение: ${errors['min'].min}`;
+    if (errors['max']) return `Максимальное значение: ${errors['max'].max}`;
+    
+    return 'Некорректное значение';
+  }
+
+  cancel(): void {
+    if (this.bookForm.dirty) {
+      if (confirm('У вас есть несохраненные изменения. Выйти без сохранения?')) {
+        this.router.navigate(['/books']);
+      }
+    } else {
+      this.router.navigate(['/books']);
     }
   }
 
-  get f() {
-    return this.bookForm.controls;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.loading$.complete();
   }
 }

@@ -1,3 +1,5 @@
+<app-error-display />
+
 <div class="book-list-container">
   <!-- Фильтры -->
   <div class="filters-panel">
@@ -7,8 +9,8 @@
         <label>По названию</label>
         <input 
           type="text" 
-          [(ngModel)]="filters.searchTitle"
-          (input)="onFilterChange()"
+          #titleInput
+          (input)="onTitleSearch(titleInput.value)"
           placeholder="Название книги..."
         />
       </div>
@@ -17,25 +19,30 @@
         <label>По автору</label>
         <input 
           type="text" 
-          [(ngModel)]="filters.searchAuthor"
-          (input)="onFilterChange()"
+          #authorInput
+          (input)="onAuthorSearch(authorInput.value)"
           placeholder="Фамилия автора..."
         />
       </div>
       
       <div class="filter-group">
         <label>По оценке</label>
-        <select [(ngModel)]="filters.rating" (change)="onFilterChange()">
-          <option [value]="undefined">Все оценки</option>
-          <option [value]="5">⭐⭐⭐⭐⭐ (5)</option>
-          <option [value]="4">⭐⭐⭐⭐ (4)</option>
-          <option [value]="3">⭐⭐⭐ (3)</option>
-          <option [value]="2">⭐⭐ (2)</option>
-          <option [value]="1">⭐ (1)</option>
+        <select #ratingSelect (change)="onRatingChange(ratingSelect.value)">
+          <option value="">Все оценки</option>
+          <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+          <option value="4">⭐⭐⭐⭐ (4)</option>
+          <option value="3">⭐⭐⭐ (3)</option>
+          <option value="2">⭐⭐ (2)</option>
+          <option value="1">⭐ (1)</option>
         </select>
       </div>
       
-      <button class="btn-clear" (click)="clearFilters()">Сбросить фильтры</button>
+      <button 
+        class="btn-clear" 
+        (click)="clearFilters()"
+        *ngIf="hasActiveFilters$ | async">
+        Сбросить фильтры
+      </button>
     </div>
   </div>
 
@@ -45,8 +52,12 @@
   </div>
 
   <!-- Список книг -->
-  <div class="books-grid">
-    <div *ngFor="let book of filteredBooks" class="book-card">
+  <div *ngIf="loading$ | async" class="loading-spinner">
+    Загрузка...
+  </div>
+
+  <div class="books-grid" *ngIf="!(loading$ | async)">
+    <div *ngFor="let book of books$ | async" class="book-card">
       <div class="book-header">
         <h3 class="book-title">{{ book.title }}</h3>
         <p class="book-author">{{ book.author }}</p>
@@ -69,7 +80,7 @@
       </div>
     </div>
     
-    <div *ngIf="filteredBooks.length === 0" class="empty-state">
+    <div *ngIf="(books$ | async)?.length === 0" class="empty-state">
       <p>📖 Нет книг в этом списке</p>
       <button routerLink="/book/add">Добавить первую книгу</button>
     </div>
