@@ -1,12 +1,11 @@
 <app-error-display />
 
 <div class="book-list-container">
-  <!-- Фильтры -->
   <div class="filters-panel">
-    <h3>🔍 Фильтры</h3>
+    <h3>Фильтры</h3>
     <div class="filters-grid">
       <div class="filter-group">
-        <label>По названию</label>
+        <label for="titleInput">По названию</label>
         <input 
           type="text" 
           #titleInput
@@ -16,7 +15,7 @@
       </div>
       
       <div class="filter-group">
-        <label>По автору</label>
+        <label for="authorInput">По автору</label>
         <input 
           type="text" 
           #authorInput
@@ -26,7 +25,7 @@
       </div>
       
       <div class="filter-group">
-        <label>По оценке</label>
+        <label for="ratingSelect">По оценке</label>
         <select #ratingSelect (change)="onRatingChange(ratingSelect.value)">
           <option value="">Все оценки</option>
           <option value="5">⭐⭐⭐⭐⭐ (5)</option>
@@ -37,52 +36,64 @@
         </select>
       </div>
       
-      <button 
-        class="btn-clear" 
-        (click)="clearFilters()"
-        *ngIf="hasActiveFilters$ | async">
-        Сбросить фильтры
-      </button>
+      @if (hasActiveFilters$ | async) {
+        <button 
+          class="btn-clear" 
+          (click)="clearFilters()">
+          Сбросить фильтры
+        </button>
+      }
     </div>
   </div>
 
-  <!-- Кнопка добавления -->
   <div class="add-button-container">
-    <button class="btn-add" routerLink="/book/add">+ Добавить книгу</button>
+    <button class="btn-add" routerLink="/book/add">Добавить книгу</button>
   </div>
 
-  <!-- Список книг -->
-  <div *ngIf="loading$ | async" class="loading-spinner">
-    Загрузка...
-  </div>
-
-  <div class="books-grid" *ngIf="!(loading$ | async)">
-    <div *ngFor="let book of books$ | async" class="book-card">
-      <div class="book-header">
-        <h3 class="book-title">{{ book.title }}</h3>
-        <p class="book-author">{{ book.author }}</p>
-        <p class="book-year" *ngIf="book.year">{{ book.year }}</p>
-      </div>
-      
-      <div class="book-rating" *ngIf="book.rating">
-        <span *ngFor="let star of getStarArray(book.rating)" class="star">⭐</span>
-        <span class="rating-value">({{ book.rating }})</span>
-      </div>
-      
-      <div class="book-review" *ngIf="book.personalReview">
-        <p class="review-text">📝 "{{ book.personalReview | slice:0:100 }}{{ book.personalReview.length > 100 ? '...' : '' }}"</p>
-      </div>
-      
-      <div class="book-actions">
-        <button class="btn-edit" [routerLink]="['/book/edit', book.id]">✏️ Редактировать</button>
-        <button class="btn-delete" (click)="deleteBook(book.id)">🗑️ Удалить</button>
-        <button class="btn-move" (click)="moveToWishlist(book.id)">⟳ В Wishlist</button>
-      </div>
+  @if (loading$ | async) {
+    <div class="loading-spinner">
+      Загрузка...
     </div>
-    
-    <div *ngIf="(books$ | async)?.length === 0" class="empty-state">
-      <p>📖 Нет книг в этом списке</p>
-      <button routerLink="/book/add">Добавить первую книгу</button>
+  } @else {
+    <div class="books-grid">
+      @if ((books$ | async)?.length === 0) {
+        <div class="empty-state">
+          <p>Нет книг в этом списке</p>
+          <button routerLink="/book/add">Добавить первую книгу</button>
+        </div>
+      }
+      @for (book of books$ | async; track book) {
+        <div class="book-card">
+          <div class="book-header">
+            <h3 class="book-title">{{ book.title }}</h3>
+            <p class="book-author">{{ book.author }}</p>
+            @if (book.year) {
+              <p class="book-year">{{ book.year }}</p>
+            }
+          </div>
+          
+          @if (book.rating) {
+            <div class="book-rating">
+              @for (star of getStarArray(book.rating); track star) {
+                <span class="star">⭐</span>
+              }
+              <span class="rating-value">({{ book.rating }})</span>
+            </div>
+          }
+          
+          @if (book.personalReview) {
+            <div class="book-review">
+              <p class="review-text">"{{ book.personalReview | slice:0:100 }}{{ book.personalReview.length > 100 ? '...' : '' }}"</p>
+            </div>
+          }
+          
+          <div class="book-actions">
+            <button class="btn-edit" [routerLink]="['/book/edit', book.id]">Редактировать</button>
+            <button class="btn-delete" (click)="deleteBook(book.id)">Удалить</button>
+            <button class="btn-move" (click)="moveToWishlist(book.id)">В Wishlist</button>
+          </div>
+        </div>
+      }
     </div>
-  </div>
+  }
 </div>

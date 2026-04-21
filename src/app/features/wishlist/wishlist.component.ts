@@ -13,12 +13,11 @@ import { map, debounceTime, distinctUntilChanged, startWith } from 'rxjs/operato
   standalone: true,
   imports: [CommonModule, RouterModule, ErrorDisplayComponent],
   templateUrl: './wishlist.component.html',
+  styleUrls: ['./wishlist.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WishlistComponent {
   private bookService = inject(BookService);
-  private filterService = inject(FilterService);
-
   private searchSubject = new BehaviorSubject<string>('');
   
   loading$ = this.bookService.loading$;

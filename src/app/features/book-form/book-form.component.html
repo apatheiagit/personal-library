@@ -2,13 +2,15 @@
 
 <div class="book-form-container">
   <h2>
-    {{ (isEditMode$ | async) ? '✏️ Редактировать книгу' : '📚 Добавить новую книгу' }}
+    {{ (isEditMode$ | async) ? 'Редактировать книгу' : 'Добавить новую книгу' }}
   </h2>
   
-  <div *ngIf="loading$ | async" class="loading-overlay">
-    <div class="spinner"></div>
-    <p>Сохранение...</p>
-  </div>
+  @if (loading$ | async) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Сохранение...</p>
+    </div>
+  }  
 
   <form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
     <div class="form-group">
@@ -22,9 +24,11 @@
         placeholder="Введите название"
         [class.is-invalid]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched"
       />
-      <div class="error-message" *ngIf="bookForm.get('title')?.touched">
-        {{ getFieldError('title') }}
-      </div>
+      @if (bookForm.get('title')?.touched) {
+        <div class="error-message">
+          {{ getFieldError('title') }}
+        </div>
+      }
     </div>
 
     <div class="form-group">
@@ -38,13 +42,15 @@
         placeholder="Введите автора"
         [class.is-invalid]="bookForm.get('author')?.invalid && bookForm.get('author')?.touched"
       />
-      <div class="error-message" *ngIf="bookForm.get('author')?.touched">
-        {{ getFieldError('author') }}
-      </div>
+      @if (bookForm.get('author')?.touched) {
+        <div class="error-message">
+          {{ getFieldError('author') }}
+        </div>
+      }
     </div>
 
     <div class="form-group">
-      <label for="year">Год издания</label>
+      <label for="year">Год прочтения</label>
       <input 
         type="number" 
         id="year" 
@@ -52,54 +58,66 @@
         placeholder="Год"
         [class.is-invalid]="bookForm.get('year')?.invalid && bookForm.get('year')?.touched"
       />
-      <div class="error-message" *ngIf="bookForm.get('year')?.touched">
-        {{ getFieldError('year') }}
-      </div>
+      @if (bookForm.get('year')?.touched) {
+        <div class="error-message">
+          {{ getFieldError('year') }}
+        </div>
+      }
     </div>
 
     <div class="form-group">
       <label for="status">Статус</label>
       <select id="status" formControlName="status">
-        <option [value]="ReadingStatus.READ">✅ Прочитано</option>
-        <option [value]="ReadingStatus.WANT_TO_READ">⭐ Хочу прочитать</option>
+        <option [value]="ReadingStatus.READ">Прочитано</option>
+        <option [value]="ReadingStatus.WANT_TO_READ">Хочу прочитать</option>
       </select>
     </div>
 
-    <div class="form-group" *ngIf="bookForm.get('status')?.value === ReadingStatus.READ">
-      <label for="rating">
-        Оценка <span class="required">*</span>
-      </label>
-      <div class="rating-input">
-        <button 
-          type="button" 
-          *ngFor="let star of [1,2,3,4,5]" 
-          class="star-btn"
-          [class.active]="(bookForm.get('rating')?.value || 0) >= star"
-          (click)="setRating(star)">
-          ⭐
-        </button>
+    @if (bookForm.get('status')?.value === ReadingStatus.READ) {
+      <div class="form-group">
+        <label for="rating">
+          Оценка <span class="required">*</span>
+        </label>
+        <div class="rating-input">
+          @for (star of [1,2,3,4,5]; track star) {
+            <button 
+              type="button"
+              class="star-btn"
+              [class.active]="(bookForm.get('rating')?.value || 0) >= star"
+              (click)="setRating(star)">
+              ⭐
+            </button>
+          }
+        </div>
+        @if (bookForm.get('rating')?.touched && bookForm.get('rating')?.invalid) {
+          <div class="error-message">
+            {{ getFieldError('rating') }}
+          </div>
+        }
       </div>
-      <div class="error-message" *ngIf="bookForm.get('rating')?.touched && bookForm.get('rating')?.invalid">
-        {{ getFieldError('rating') }}
-      </div>
-    </div>
+    }
 
-    <div class="form-group" *ngIf="bookForm.get('status')?.value === ReadingStatus.READ">
-      <label for="personalReview">Личный отзыв</label>
-      <textarea 
-        id="personalReview" 
-        formControlName="personalReview" 
-        rows="5" 
-        placeholder="Напишите свои впечатления о книге..."></textarea>
-      <div class="hint" *ngIf="bookForm.get('personalReview')?.value?.length">
-        {{ bookForm.get('personalReview')?.value?.length }}/1000 символов
+    @if (bookForm.get('status')?.value === ReadingStatus.READ) {
+      <div class="form-group">
+        <label for="personalReview">Личный отзыв</label>
+        <textarea 
+          id="personalReview" 
+          formControlName="personalReview" 
+          rows="5" 
+          placeholder="Напиши свои впечатления о книге..."></textarea>
+        @if (bookForm.get('personalReview')?.value?.length) {
+          <div class="hint">
+            {{ bookForm.get('personalReview')?.value?.length }}/1000 символов
+          </div>
+        }
       </div>
-    </div>
+    }
 
-    <div class="info-box" *ngIf="bookForm.get('status')?.value === ReadingStatus.WANT_TO_READ">
-      <span class="info-icon">ℹ️</span>
-      <p>Книга будет добавлена в список "Хочу прочитать". Оценку и отзыв можно будет добавить позже, когда вы прочитаете книгу.</p>
-    </div>
+    @if (bookForm.get('status')?.value === ReadingStatus.WANT_TO_READ) {
+      <div class="info-box">
+        <p>Книга будет добавлена в список "Хочу прочитать". Оценку и отзыв можно будет добавить позже, когда прочитаешь книгу.</p>
+      </div>
+    }
 
     <div class="form-actions">
       <button type="button" class="btn-cancel" (click)="cancel()">
@@ -114,7 +132,9 @@
     </div>
   </form>
 
-  <div class="unsaved-indicator" *ngIf="bookForm.dirty && !(loading$ | async)">
-    <span>⚠️ Есть несохраненные изменения</span>
-  </div>
+  @if (bookForm.dirty && (loading$ | async) === false) {
+    <div class="unsaved-indicator" >
+      <span>⚠️ Есть несохраненные изменения</span>
+    </div>
+  }
 </div>
