@@ -1,0 +1,36 @@
+<div class="book-card">
+    <div class="book-header">
+        <h3 class="book-title">{{ book().title }}</h3>
+        <p class="book-author">{{ book().author }}</p>
+        @if (book().year) {
+            <p class="book-year">{{ book().year }}</p>
+        }
+    </div>
+    
+    @if (book().rating) {
+    <div class="book-rating">
+        @for (star of getStarArray(book().rating); track star) {
+        <span class="star">⭐</span>
+        }
+        <span class="rating-value">({{ book().rating }})</span>
+    </div>
+    }
+    
+    @if (book() && book().personalReview) {
+    <div class="book-review">
+        <p class="review-text">"{{ 
+            book().personalReview | slice:0:100
+        }}"</p>
+    </div>
+    }
+    
+    <div class="book-actions">
+        <button class="btn-edit" [routerLink]="['/book/edit', book().id]">Редактировать</button>
+        <button class="btn-delete" (click)="deleteBook.emit()">Удалить</button>
+        @if (isReaded()) {            
+            <button class="btn-move" (click)="moveToWishlist.emit()">В Wishlist</button>
+        } @else {
+            <button class="btn-move" (click)="moveToRead.emit()">Прочитана</button>
+        }
+    </div>
+</div>

@@ -50,6 +50,14 @@
     <button class="btn-add" routerLink="/book/add">Добавить книгу</button>
   </div>
 
+  @if (totalCount$ | async; as totalCount) {
+    <div class="info-bar">
+      <div class="count-info">
+        Найдено книг: <strong>{{ totalCount }}</strong>
+      </div>
+    </div>
+  }
+
   @if (loading$ | async) {
     <div class="loading-spinner">
       Загрузка...
@@ -62,37 +70,21 @@
           <button routerLink="/book/add">Добавить первую книгу</button>
         </div>
       }
-      @for (book of books$ | async; track book) {
-        <div class="book-card">
-          <div class="book-header">
-            <h3 class="book-title">{{ book.title }}</h3>
-            <p class="book-author">{{ book.author }}</p>
-            @if (book.year) {
-              <p class="book-year">{{ book.year }}</p>
-            }
-          </div>
-          
-          @if (book.rating) {
-            <div class="book-rating">
-              @for (star of getStarArray(book.rating); track star) {
-                <span class="star">⭐</span>
-              }
-              <span class="rating-value">({{ book.rating }})</span>
-            </div>
-          }
-          
-          @if (book.personalReview) {
-            <div class="book-review">
-              <p class="review-text">"{{ book.personalReview | slice:0:100 }}{{ book.personalReview.length > 100 ? '...' : '' }}"</p>
-            </div>
-          }
-          
-          <div class="book-actions">
-            <button class="btn-edit" [routerLink]="['/book/edit', book.id]">Редактировать</button>
-            <button class="btn-delete" (click)="deleteBook(book.id)">Удалить</button>
-            <button class="btn-move" (click)="moveToWishlist(book.id)">В Wishlist</button>
-          </div>
-        </div>
+      @for (book of (paginatedBooks$ | async)?.paginatedItems; track book) {
+        <app-book-card
+          [book]="book"
+          [isReaded]="true"
+          (deleteBook)="deleteBook(book.id)"
+          (moveToWishlist)="moveToWishlist(book.id)"
+        ></app-book-card>
+      }
+
+      @if ((paginatedBooks$ | async)?.paginationState; as paginationState) {
+        <app-pagination 
+          [paginationState]="paginationState"
+          (pageChange)="onPageChange($event)"
+          (itemsPerPageChange)="onItemsPerPageChange($event)">
+        </app-pagination>
       }
     </div>
   }

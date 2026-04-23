@@ -1,0 +1,62 @@
+@if (paginationState.totalPages > 1 || paginationState.totalItems > minItemsPerPage) {
+<div class="pagination-container">
+  <div class="pagination-info">
+    Показано {{ getStartIndex() }} - {{ getEndIndex() }} 
+    из {{ paginationState.totalItems }} книг
+  </div>
+  
+  <div class="pagination-controls">
+    <div class="items-per-page">
+      <label for="items-per-page">Показывать:</label>
+      <select id="items-per-page" [value]="paginationState.itemsPerPage" (change)="onItemsPerPageChange($any($event.target).value)">
+        @for (option of itemsPerPageOptions; track option) {
+            <option [value]="option">
+                {{ option }}
+            </option>
+        }
+      </select>
+    </div>
+
+    <div class="pagination-buttons">
+      <button 
+        class="pagination-btn" 
+        [disabled]="paginationState.currentPage === 1"
+        (click)="onPageChange(1)">
+        ⟪
+      </button>
+      <button 
+        class="pagination-btn" 
+        [disabled]="paginationState.currentPage === 1"
+        (click)="onPageChange(paginationState.currentPage - 1)">
+        ⟨
+      </button>
+      
+      @for (page of pages; track page) {
+        @if (isDot(page)) {
+            <span class="pagination-dots">...</span>
+        } @else {          
+           <button 
+            class="pagination-btn"
+            [class.active]="page === paginationState.currentPage"
+            (click)="onPageChange(page)">
+            {{ page }}
+           </button>
+        }
+    }
+      
+      <button 
+        class="pagination-btn" 
+        [disabled]="paginationState.currentPage === paginationState.totalPages"
+        (click)="onPageChange(paginationState.currentPage + 1)">
+        ⟩
+      </button>
+      <button 
+        class="pagination-btn" 
+        [disabled]="paginationState.currentPage === paginationState.totalPages"
+        (click)="onPageChange(paginationState.totalPages)">
+        ⟫
+      </button>
+    </div>
+  </div>
+</div>
+}

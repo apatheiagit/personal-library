@@ -68,24 +68,12 @@
         </div>
       }
       @for (book of filteredBooks$ | async; track book) {
-        <div class="book-card">
-          <div class="book-header">
-            <h3 class="book-title">{{ book.title }}</h3>
-            <p class="book-author">{{ book.author }}</p>
-          </div>
-          
-          <div class="book-actions">
-            <button class="btn-move" (click)="moveToRead(book.id)" title="Переместить в прочитанные">
-              Прочитана
-            </button>
-            <button class="btn-edit" [routerLink]="['/book/edit', book.id]" title="Редактировать">
-              Редактировать
-            </button>
-            <button class="btn-delete" (click)="deleteBook(book.id)" title="Удалить">
-              Удалить
-            </button>
-          </div>
-        </div>
+        <app-book-card
+          [book]="book"
+          [isReaded]="false"
+          (deleteBook)="deleteBook(book.id)"
+          (moveToRead)="moveToRead(book.id)"
+        ></app-book-card>
       }
     </div>
   }
