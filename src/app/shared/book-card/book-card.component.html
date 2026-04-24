@@ -1,16 +1,35 @@
 <div class="book-card">
     <div class="book-header">
-        <h3 class="book-title">{{ book().title }}</h3>
+        <div class="d-flex justify-space-between gap-8">
+            <h3 class="book-title">{{ book().title }}</h3>
+            <div class="book-actions">
+                <button matIconButton [routerLink]="['/book/edit', book().id]" aria-label="Редактировать">
+                    <mat-icon>edit</mat-icon>
+                </button>
+                <button matIconButton (click)="deleteBook.emit()" aria-label="Удалить">
+                    <mat-icon>delete</mat-icon>
+                </button>
+                @if (isReaded()) {   
+                    <button matIconButton (click)="moveToWishlist.emit()" aria-label="В Wishlist">
+                        <mat-icon>favorite</mat-icon>
+                    </button>
+                } @else {
+                    <button matIconButton (click)="moveToRead.emit()" aria-label="Прочитана">
+                        <mat-icon>done_all</mat-icon>
+                    </button>
+                }
+            </div>
+        </div>
         <p class="book-author">{{ book().author }}</p>
         @if (book().year) {
-            <p class="book-year">{{ book().year }}</p>
+            <p class="book-year">Год прочтения: {{ book().year }}</p>
         }
     </div>
     
     @if (book().rating) {
     <div class="book-rating">
         @for (star of getStarArray(book().rating); track star) {
-        <span class="star">⭐</span>
+        <mat-icon>star</mat-icon>
         }
         <span class="rating-value">({{ book().rating }})</span>
     </div>
@@ -18,19 +37,37 @@
     
     @if (book() && book().personalReview) {
     <div class="book-review">
-        <p class="review-text">"{{ 
-            book().personalReview | slice:0:100
-        }}"</p>
+        <div class="text-container" [class.expanded]="isExpanded">
+            <span [innerHTML]="displayText"></span>
+            
+            @if (isTruncated) {
+                @if (!isExpanded) {
+                    {{ '...'}}
+                    <button 
+                        class="expand-btn"
+                        (click)="toggleExpand()"
+                        (keydown.enter)="toggleExpand()"
+                        (keydown.space)="toggleExpand()"
+                        tabindex="0"
+                        [attr.aria-expanded]="isExpanded"
+                        aria-label="Развернуть текст">
+                        {{ 'Развернуть' }}
+                    </button>
+                } @else {
+                    <button 
+                        class="collapse-btn"
+                        (click)="toggleExpand()"
+                        (keydown.enter)="toggleExpand()"
+                        (keydown.space)="toggleExpand()"
+                        tabindex="0"
+                        aria-label="Свернуть текст">
+                        {{ 'Свернуть' }}
+                    </button>
+                }
+            }
+        </div>
     </div>
     }
     
-    <div class="book-actions">
-        <button class="btn-edit" [routerLink]="['/book/edit', book().id]">Редактировать</button>
-        <button class="btn-delete" (click)="deleteBook.emit()">Удалить</button>
-        @if (isReaded()) {            
-            <button class="btn-move" (click)="moveToWishlist.emit()">В Wishlist</button>
-        } @else {
-            <button class="btn-move" (click)="moveToRead.emit()">Прочитана</button>
-        }
-    </div>
+    
 </div>

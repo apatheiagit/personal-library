@@ -1,5 +1,5 @@
 .book-card {
-    background: white;
+    background: var(--n-prim-fill-color);
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -14,84 +14,79 @@
       margin-bottom: 1rem;
       
       .book-title {
-        margin: 0 0 0.25rem 0;
+        margin: 0 0 0.5rem 0;
         font-size: 1.25rem;
-        color: #333;
+        line-height: 1.5rem;
       }
       
       .book-author {
         margin: 0;
-        color: #666;
         font-size: 0.9rem;
       }
       
       .book-year {
         margin: 0.25rem 0 0 0;
-        color: #999;
+        color: var(--n-sec-txt-ic-color);
         font-size: 0.85rem;
       }
     }
     
     .book-rating {
       margin: 1rem 0;
-      
-      .star {
-        font-size: 1.2rem;
-        margin-right: 2px;
-      }
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--n-accent-txt-ic-color);
       
       .rating-value {
-        margin-left: 0.5rem;
-        color: #666;
+        color: var(--n-sec-txt-ic-color);
       }
     }
     
     .book-review {
-      background: #f8f9fa;
+      background: var(--n-sec-fill-color);
       padding: 0.75rem;
       border-radius: 8px;
       margin: 1rem 0;
-      
-      .review-text {
-        margin: 0;
-        font-style: italic;
-        color: #555;
-        font-size: 0.9rem;
-      }
+
     }
     
     .book-actions {
       display: flex;
       gap: 0.5rem;
-      margin-top: 1rem;
-      
-      button {
-        flex: 1;
-        padding: 0.5rem;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: opacity 0.2s;
-        
-        &:hover {
-          opacity: 0.8;
-        }
+      margin-bottom: 1rem;
+      opacity: 0.5;
+      &:hover{
+        opacity: 1;
       }
-      
-      .btn-edit {
-        background: #007bff;
-        color: white;
+      .material-icons {
+        font-size: 20px;
       }
-      
-      .btn-delete {
-        background: #dc3545;
-        color: white;
+      .mat-icon {
+        height: 20px;
+        width: 20px;
       }
-      
-      .btn-move {
-        background: #ffc107;
-        color: #333;
-      }
+    }
+
+    .expand-btn, .collapse-btn {
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--n-accent-txt-ic-color);
+      font-size: inherit;
+      padding: 0 0 0 8px;
+      transition: opacity 0.2s;
+    }
+
+    .expand-btn:hover, .collapse-btn:hover {
+      opacity: 0.7;
+      text-decoration: underline;
+    }
+
+    .expand-btn:focus-visible,
+    .collapse-btn:focus-visible {
+      outline: 2px solid var(--n-accent-txt-ic-color);
+      outline-offset: 2px;
+      border-radius: 2px;
     }
   }

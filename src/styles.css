@@ -1,13 +1,24 @@
+:root {
+  --n-prim-txt-ic-color: #212c3a;
+  --n-sec-txt-ic-color: #626974;
+  --n-prim-background-fill-color: #F5F5F5;
+  --n-prim-fill-color: #FFFFFF;
+  --n-sec-fill-color: #e4e5e7;
+  --n-danger-txt-ic-color: #d34e4e;
+  --n-prim-danger-fill-color: #d34e4e;
+  --n-accent-txt-ic-color: #3e8af0;
+}
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-
+html, body { height: 100%; }
 body {
-  font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  background: #f5f7fa;
-  color: #333;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background: var(--n-prim-background-fill-color);
+  color: var(--n-prim-txt-ic-color);
+  margin: 0; 
 }
 
 .loading-spinner {
@@ -38,22 +49,18 @@ body {
 .error-state {
   text-align: center;
   padding: 3rem;
-  background: #fff3f3;
+  background: var(--n-prim-fill-color);
   border-radius: 12px;
-  color: #dc3545;
+  color: var(--n-danger-txt-ic-color);
   
   .btn-retry {
     margin-top: 1rem;
     padding: 0.5rem 1rem;
-    background: #dc3545;
-    color: white;
+    background: var(--n-prim-danger-fill-color);
+    color: var(--n-prim-fill-color);
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    
-    &:hover {
-      background: #c82333;
-    }
   }
 }
 
@@ -243,4 +250,40 @@ body {
   &:hover {
     background: #555;
   }
+}
+.d-flex {
+  display: flex;
+}
+.justify-space-between {
+  justify-content: space-between;
+}
+.gap-24 {
+  gap: 24px;
+}
+.gap-16 {
+  gap: 16px;
+}
+.gap-8 {
+  gap: 8px;
+}
+.m-b-16 {
+  margin-bottom: 16px;
+}
+.m-b-24 {
+  margin-bottom: 24px;
+}
+.p-16 {
+  padding: 16px;
+}
+.p-t-8 {
+  padding-top: 8px;
+}
+.align-items-center {
+  align-items: center;
+}
+.align-items-start {
+  align-items: start;
+}
+.w-100 {
+  width: 100%;
 }

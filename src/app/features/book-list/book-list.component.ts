@@ -1,7 +1,8 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { combineLatest, map, shareReplay } from 'rxjs';
+import { combineLatest, filter, map, shareReplay, switchMap } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 import { BookService } from '../../core/services/book.service';
 import { FilterService } from '../../core/services/filter.service';
 import { PaginationService } from '../../core/services/pagination.service';
@@ -9,6 +10,7 @@ import { Rating, ReadingStatus } from '../../core/models/book.model';
 import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { BookCardComponent } from '../../shared/book-card/book-card.component';
+import { DialogComponent } from '../../shared/dialog/dialog.component';
 
 @Component({
   selector: 'app-book-list',
@@ -19,6 +21,7 @@ import { BookCardComponent } from '../../shared/book-card/book-card.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookListComponent implements OnInit{
+  readonly dialog = inject(MatDialog);
   private bookService = inject(BookService);
   private filterService = inject(FilterService);
   private paginationService = inject(PaginationService);
@@ -88,14 +91,26 @@ export class BookListComponent implements OnInit{
     this.paginationService.setItemsPerPage(itemsPerPage);
   }
 
-  deleteBook(id: string): void {
-    if (confirm('Вы уверены, что хотите удалить эту книгу?')) {
-      this.bookService.deleteBook(id).subscribe();
-    }
-  }
-
   moveToWishlist(id: string): void {
     this.bookService.changeStatus(id, ReadingStatus.WANT_TO_READ).subscribe();
+  }
+
+  openDeleteDialog(id: string): void {
+    const dialogRef = this.dialog.open(
+      DialogComponent, 
+      {
+        data: {
+          title: 'Удаление',
+          message: 'Вы уверены, что хотите удалить эту книгу?',
+        },
+      },
+    );
+    dialogRef.afterClosed()
+      .pipe(
+        filter(x => !!x),
+        switchMap(() => this.bookService.deleteBook(id)),
+      )
+      .subscribe();
   }
   
 }

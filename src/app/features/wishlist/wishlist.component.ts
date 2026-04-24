@@ -2,11 +2,13 @@ import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BehaviorSubject, combineLatest } from 'rxjs';
-import { map, debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
+import { map, debounceTime, distinctUntilChanged, startWith, filter, switchMap } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
 import { BookService } from '../../core/services/book.service';
 import { ReadingStatus } from '../../core/models/book.model';
 import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
 import { BookCardComponent } from '../../shared/book-card/book-card.component';
+import { DialogComponent } from '../../shared/dialog/dialog.component';
 
 @Component({
   selector: 'app-wishlist',
@@ -17,6 +19,7 @@ import { BookCardComponent } from '../../shared/book-card/book-card.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WishlistComponent {
+  readonly dialog = inject(MatDialog);
   private bookService = inject(BookService);
   private searchSubject = new BehaviorSubject<string>('');
   
@@ -54,12 +57,6 @@ export class WishlistComponent {
     this.searchSubject.next('');
   }
 
-  deleteBook(id: string): void {
-    if (confirm('Удалить книгу из списка желаний?')) {
-      this.bookService.deleteBook(id).subscribe();
-    }
-  }
-
   moveToRead(id: string): void {
     this.bookService.changeStatus(id, ReadingStatus.READ).subscribe({
       next: () => {
@@ -70,5 +67,23 @@ export class WishlistComponent {
 
   clearError(): void {
     this.bookService.clearError();
+  }
+
+  openDeleteDialog(id: string): void {
+    const dialogRef = this.dialog.open(
+      DialogComponent, 
+      {
+        data: {
+          title: 'Удаление',
+          message: 'Удалить книгу из списка желаний?',
+        },
+      },
+    );
+    dialogRef.afterClosed()
+      .pipe(
+        filter(x => !!x),
+        switchMap(() => this.bookService.deleteBook(id)),
+      )
+      .subscribe();
   }
 }

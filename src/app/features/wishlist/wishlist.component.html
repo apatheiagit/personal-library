@@ -71,7 +71,7 @@
         <app-book-card
           [book]="book"
           [isReaded]="false"
-          (deleteBook)="deleteBook(book.id)"
+          (deleteBook)="openDeleteDialog(book.id)"
           (moveToRead)="moveToRead(book.id)"
         ></app-book-card>
       }
