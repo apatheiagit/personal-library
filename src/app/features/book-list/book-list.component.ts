@@ -1,8 +1,14 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { combineLatest, filter, map, shareReplay, switchMap } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { BookService } from '../../core/services/book.service';
 import { FilterService } from '../../core/services/filter.service';
 import { PaginationService } from '../../core/services/pagination.service';
@@ -15,7 +21,9 @@ import { DialogComponent } from '../../shared/dialog/dialog.component';
 @Component({
   selector: 'app-book-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ErrorDisplayComponent, PaginationComponent, BookCardComponent ],
+  imports: [CommonModule, RouterModule, ErrorDisplayComponent, PaginationComponent, BookCardComponent, MatButtonModule,
+    MatSelectModule, MatInputModule, MatFormFieldModule, MatProgressSpinnerModule, MatExpansionModule,
+   ],
   templateUrl: './book-list.component.html',
   styleUrls: ['./book-list.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +36,7 @@ export class BookListComponent implements OnInit{
 
   loading$ = this.bookService.loading$;
   books$ = this.bookService.filterBooks(this.filterService.filters$);
+  readonly panelOpenState = signal(false);
   
   private filteredBooks$ = combineLatest([
     this.bookService.readBooks$,

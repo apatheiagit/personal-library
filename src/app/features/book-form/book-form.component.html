@@ -7,111 +7,106 @@
   
   @if (loading$ | async) {
     <div class="loading-overlay">
-      <div class="spinner"></div>
+      <mat-spinner></mat-spinner>
       <p>Сохранение...</p>
     </div>
   }  
 
   <form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
     <div class="form-group">
-      <label for="title">
-        Название книги <span class="required">*</span>
-      </label>
-      <input 
-        type="text" 
-        id="title" 
-        formControlName="title" 
-        placeholder="Введите название"
-        [class.is-invalid]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched"
-      />
-      @if (bookForm.get('title')?.touched) {
-        <div class="error-message">
-          {{ getFieldError('title') }}
-        </div>
-      }
+      <mat-form-field>
+        <mat-label>Название книги</mat-label>
+        <input
+          matInput
+          type="text" 
+          id="title" 
+          formControlName="title" 
+          placeholder="Введите название"
+          required
+        >
+      </mat-form-field>
     </div>
 
     <div class="form-group">
-      <label for="author">
-        Автор <span class="required">*</span>
-      </label>
-      <input 
-        type="text" 
-        id="author" 
-        formControlName="author" 
-        placeholder="Введите автора"
-        [class.is-invalid]="bookForm.get('author')?.invalid && bookForm.get('author')?.touched"
-      />
-      @if (bookForm.get('author')?.touched) {
-        <div class="error-message">
-          {{ getFieldError('author') }}
-        </div>
-      }
+      <mat-form-field>
+        <mat-label>Автор</mat-label>
+        <input
+          matInput
+          type="text" 
+          id="author"
+          formControlName="author" 
+          placeholder="Введите автора"
+          required
+        >
+      </mat-form-field>
     </div>
 
     <div class="form-group">
-      <label for="year">Год прочтения</label>
-      <input 
-        type="number" 
-        id="year" 
-        formControlName="year" 
-        placeholder="Год"
-        [class.is-invalid]="bookForm.get('year')?.invalid && bookForm.get('year')?.touched"
-      />
-      @if (bookForm.get('year')?.touched) {
-        <div class="error-message">
-          {{ getFieldError('year') }}
-        </div>
-      }
-    </div>
-
-    <div class="form-group">
-      <label for="status">Статус</label>
-      <select id="status" formControlName="status">
-        <option [value]="ReadingStatus.READ">Прочитано</option>
-        <option [value]="ReadingStatus.WANT_TO_READ">Хочу прочитать</option>
-      </select>
+      <mat-form-field>
+        <mat-label>Статус</mat-label>
+        <mat-select
+          #statusSelect
+          id="status"
+          formControlName="status"
+        >
+          <mat-option [value]="ReadingStatus.READ">Прочитано</mat-option>
+          <mat-option [value]="ReadingStatus.WANT_TO_READ">Хочу прочитать</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
 
     @if (bookForm.get('status')?.value === ReadingStatus.READ) {
       <div class="form-group">
-        <label for="rating">
-          Оценка <span class="required">*</span>
-        </label>
-        <div class="rating-input">
-          @for (star of [1,2,3,4,5]; track star) {
-            <button 
-              type="button"
-              class="star-btn"
-              [class.active]="(bookForm.get('rating')?.value || 0) >= star"
-              (click)="setRating(star)">
-              ⭐
-            </button>
-          }
-        </div>
-        @if (bookForm.get('rating')?.touched && bookForm.get('rating')?.invalid) {
-          <div class="error-message">
-            {{ getFieldError('rating') }}
+        <mat-form-field>
+          <mat-label>Год прочтения</mat-label>
+          <input
+            matInput
+            type="number" 
+            id="year"
+            formControlName="year" 
+            placeholder="Год"
+          >
+        </mat-form-field>
+      </div>
+   
+      <div class="form-group">
+        <mat-form-field>
+          <mat-label>Оценка</mat-label>
+          <input
+            matInput
+            type="text" 
+            id="rating"
+            formControlName="rating" 
+            placeholder="Оценка"
+            required
+          >
+          <div class="d-flex gap-8 m-t-24">
+            @for (star of [1,2,3,4,5]; track star) {
+              <button
+                matIconButton
+                type="button"
+                class="star-btn"
+                [class.active]="(bookForm.get('rating')?.value || 0) >= star"
+                (click)="setRating(star)">
+                <mat-icon>star</mat-icon>
+              </button>
+            }
           </div>
-        }
+        </mat-form-field>
       </div>
     }
 
-    @if (bookForm.get('status')?.value === ReadingStatus.READ) {
-      <div class="form-group">
-        <label for="personalReview">Личный отзыв</label>
-        <textarea 
+    <div class="form-group">
+      <mat-form-field>
+        <mat-label>Личный отзыв</mat-label>
+        <textarea
+          matInput
           id="personalReview" 
           formControlName="personalReview" 
           rows="5" 
           placeholder="Напиши свои впечатления о книге..."></textarea>
-        @if (bookForm.get('personalReview')?.value?.length) {
-          <div class="hint">
-            {{ bookForm.get('personalReview')?.value?.length }}/1000 символов
-          </div>
-        }
-      </div>
-    }
+      </mat-form-field>
+    </div>
 
     @if (bookForm.get('status')?.value === ReadingStatus.WANT_TO_READ) {
       <div class="info-box">
@@ -120,12 +115,15 @@
     }
 
     <div class="form-actions">
-      <button type="button" class="btn-cancel" (click)="cancel()">
+      <button
+        matButton="elevated"
+        type="button" 
+        (click)="cancel()">
         Отмена
       </button>
-      <button 
+      <button
+        matButton="filled"
         type="submit" 
-        class="btn-submit" 
         [disabled]="(loading$ | async) || bookForm.invalid">
         {{ (loading$ | async) ? 'Сохранение...' : ((isEditMode$ | async) ? 'Обновить' : 'Добавить') }}
       </button>

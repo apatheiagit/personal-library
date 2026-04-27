@@ -2,11 +2,14 @@
   --n-prim-txt-ic-color: #212c3a;
   --n-sec-txt-ic-color: #626974;
   --n-prim-background-fill-color: #F5F5F5;
+  --n-sec-background-fill-color: #444BD4;
   --n-prim-fill-color: #FFFFFF;
-  --n-sec-fill-color: #e4e5e7;
+  --n-sec-fill-color: #e0e0ff;
+  --n-ter-fill-color: #e4e1ec;
   --n-danger-txt-ic-color: #d34e4e;
   --n-prim-danger-fill-color: #d34e4e;
-  --n-accent-txt-ic-color: #3e8af0;
+  --n-accent-txt-ic-color: #343dff;
+  --n-prim-info-fill-color: #bec2ff;
 }
 * {
   margin: 0;
@@ -21,29 +24,14 @@ body {
   margin: 0; 
 }
 
-.loading-spinner {
+.loading-overlay {
   text-align: center;
   padding: 3rem;
   
-  .spinner {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-  
   p {
     margin-top: 1rem;
-    color: #666;
+    color: var(--n-sec-txt-ic-color);
   }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 .error-state {
@@ -52,117 +40,26 @@ body {
   background: var(--n-prim-fill-color);
   border-radius: 12px;
   color: var(--n-danger-txt-ic-color);
-  
-  .btn-retry {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background: var(--n-prim-danger-fill-color);
-    color: var(--n-prim-fill-color);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
 }
 
 .empty-state {
   text-align: center;
   padding: 3rem;
-  background: #f8f9fa;
+  background: var(--n-prim-fill-color);
   border-radius: 12px;
-  
-  .empty-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-  }
   
   p {
     font-size: 1.2rem;
-    color: #666;
-    margin-bottom: 0.5rem;
+    color: var(--n-sec-txt-ic-color);
+    margin-bottom: 0;
   }
   
-  .empty-hint {
-    font-size: 0.9rem;
-    color: #999;
-  }
-  
-  button {
-    margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    
-    &:hover {
-      background: #0056b3;
-    }
-  }
-  
-  .btn-clear-search {
-    margin-left: 0.5rem;
-    background: #6c757d;
-    
-    &:hover {
-      background: #5a6268;
-    }
-  }
 }
 
 .form-group {
   margin-bottom: 1.5rem;
-  
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #555;
-    
-    .required {
-      color: #dc3545;
-    }
-  }
-  
-  input, select, textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s;
-    
-    &:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    &.is-invalid {
-      border-color: #dc3545;
-      
-      &:focus {
-        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
-      }
-    }
-  }
-  
-  textarea {
-    resize: vertical;
-    font-family: inherit;
-  }
-  
-  .error-message {
-    color: #dc3545;
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-  }
-  
-  .hint {
-    color: #999;
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-  }
+  display: flex;
+  flex-direction: column;
 }
 
 .info-box {
@@ -198,14 +95,14 @@ body {
 .info-bar {
   margin: 1rem 0;
   padding: 0.75rem 1rem;
-  background: #e3f2fd;
+  background: var(--n-ter-fill-color);
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   
   .count-info {
-    color: #1976d2;
+    color: var(--n-accent-txt-ic-color);
     font-size: 0.9rem;
     
     strong {
@@ -213,6 +110,12 @@ body {
     }
   }
 }
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+} 
 
 @media (max-width: 768px) {
   .books-grid {
@@ -272,6 +175,9 @@ body {
 .m-b-24 {
   margin-bottom: 24px;
 }
+.m-t-24 {
+  margin-top: 24px;
+}
 .p-16 {
   padding: 16px;
 }
@@ -287,3 +193,20 @@ body {
 .w-100 {
   width: 100%;
 }
+.mat-mdc-form-field-subscript-wrapper {
+  height: 0;
+}
+app-book-card {
+  display: block;
+  height: 100%;
+}
+.mat-mdc-icon-button.active .mat-icon {
+  color: var(--n-accent-txt-ic-color);
+}
+.mdc-button.btn-clear {
+  display: none;
+  &.show {
+    display: inline-flex;
+  }
+}
+

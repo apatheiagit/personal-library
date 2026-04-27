@@ -1,20 +1,28 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { combineLatest, Subject } from 'rxjs';
+import { debounceTime, filter, finalize, map, shareReplay, startWith, switchMap, takeUntil } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { BookService } from '../../core/services/book.service';
 import { Rating, ReadingStatus } from '../../core/models/book.model';
-import { debounceTime, filter, finalize, map, shareReplay, startWith, switchMap, takeUntil } from 'rxjs/operators';
 import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
-import { combineLatest, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-book-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, ErrorDisplayComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ErrorDisplayComponent,
+    MatButtonModule, MatSelectModule, MatInputModule, MatFormFieldModule, MatIconModule, MatProgressSpinnerModule,
+  ],
   templateUrl: './book-form.component.html',
   styleUrls: ['./book-form.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookFormComponent implements OnDestroy {
   public router = inject(Router);
@@ -27,18 +35,18 @@ export class BookFormComponent implements OnDestroy {
   private route = inject(ActivatedRoute);
 
   private bookId$ = this.route.paramMap.pipe(
-    map(params => params.get('id'))
+    map(params => params.get('id')),
   );
   
   isEditMode$ = this.bookId$.pipe(
     map(id => !!id),
-    shareReplay(1)
+    shareReplay(1),
   );
   
   bookToEdit$ = combineLatest([this.bookId$, this.isEditMode$]).pipe(
     filter(([id, isEdit]) => isEdit && !!id),
     switchMap(([id]) => this.bookService.getBookById(id!)),
-    shareReplay(1)
+    shareReplay(1),
   );
   
   loading$ = new Subject<boolean>();
@@ -52,7 +60,7 @@ export class BookFormComponent implements OnDestroy {
       year: [null, [Validators.min(0), Validators.max(new Date().getFullYear())]],
       status: [ReadingStatus.READ, Validators.required],
       rating: [null],
-      personalReview: ['']
+      personalReview: [''],
     });
     this.loadBookIfEditMode();
     this.setupStatusListener();
@@ -68,13 +76,13 @@ export class BookFormComponent implements OnDestroy {
           }
         });
         return errors;
-      })
+      }),
     );
   }
 
   private loadBookIfEditMode(): void {
     this.bookToEdit$.pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
     ).subscribe(book => {
       this.bookForm.patchValue({
         title: book.title,
@@ -82,7 +90,7 @@ export class BookFormComponent implements OnDestroy {
         year: book.year,
         status: book.status,
         rating: book.rating || null,
-        personalReview: book.personalReview || ''
+        personalReview: book.personalReview || '',
       });
       this.toggleRatingReviewFields(book.status);
     });
@@ -90,7 +98,7 @@ export class BookFormComponent implements OnDestroy {
 
   private setupStatusListener(): void {
     this.bookForm.get('status')?.valueChanges.pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
     ).subscribe(status => {
       this.toggleRatingReviewFields(status);
     });
@@ -100,7 +108,7 @@ export class BookFormComponent implements OnDestroy {
     this.bookForm.valueChanges.pipe(
       filter(() => this.bookForm.valid),
       debounceTime(30000),
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
     ).subscribe(formValue => {
       if (formValue.title && formValue.author) {
         localStorage.setItem('book_draft', JSON.stringify(formValue));
@@ -149,7 +157,6 @@ export class BookFormComponent implements OnDestroy {
     
     if (formValue.status !== ReadingStatus.READ) {
       delete formValue.rating;
-      delete formValue.personalReview;
     }
 
     this.loading$.next(true);
@@ -159,26 +166,30 @@ export class BookFormComponent implements OnDestroy {
         if (isEdit) {
           return this.bookId$.pipe(
             switchMap(id => this.bookService.getBookById(id!)),
-            switchMap(book => this.bookService.updateBook(book.id, { ...book, ...formValue }))
+            switchMap(book => this.bookService.updateBook(book.id, { ...book, ...formValue })),
           );
         } else {
           return this.bookService.addBook(formValue);
         }
-      })
+      }),
     );
     
     saveOperation$.pipe(
       finalize(() => this.loading$.next(false)),
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
     ).subscribe({
       next: () => {
         localStorage.removeItem('book_draft');
         alert('Книга успешно сохранена!');
-        this.router.navigate(['/books']);
+        if (this.bookForm.value.status === ReadingStatus.WANT_TO_READ) {
+          this.router.navigate(['/wishlist']);
+        } else {
+          this.router.navigate(['/books']);
+        }
       },
       error: (error) => {
         console.error('Ошибка сохранения:', error);
-      }
+      },
     });
   }
 
@@ -187,20 +198,6 @@ export class BookFormComponent implements OnDestroy {
       const control = this.bookForm.get(key);
       control?.markAsTouched();
     });
-  }
-
-  getFieldError(fieldName: string): string {
-    const control = this.bookForm.get(fieldName);
-    if (!control || !control.errors || !control.touched) return '';
-    
-    const errors = control.errors;
-    if (errors['required']) return 'Это поле обязательно';
-    if (errors['minlength']) return `Минимум ${errors['minlength'].requiredLength} символов`;
-    if (errors['maxlength']) return `Максимум ${errors['maxlength'].requiredLength} символов`;
-    if (errors['min']) return `Минимальное значение: ${errors['min'].min}`;
-    if (errors['max']) return `Максимальное значение: ${errors['max'].max}`;
-    
-    return 'Некорректное значение';
   }
 
   cancel(): void {

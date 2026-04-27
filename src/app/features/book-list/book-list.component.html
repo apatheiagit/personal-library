@@ -1,54 +1,72 @@
 <app-error-display />
 
 <div class="book-list-container">
-  <div class="filters-panel">
-    <h3>Фильтры</h3>
-    <div class="filters-grid">
-      <div class="filter-group">
-        <label for="titleInput">По названию</label>
-        <input 
-          type="text" 
-          #titleInput
-          (input)="onTitleSearch(titleInput.value)"
-          placeholder="Название книги..."
-        />
-      </div>
-      
-      <div class="filter-group">
-        <label for="authorInput">По автору</label>
-        <input 
-          type="text" 
-          #authorInput
-          (input)="onAuthorSearch(authorInput.value)"
-          placeholder="Фамилия автора..."
-        />
-      </div>
-      
-      <div class="filter-group">
-        <label for="ratingSelect">По оценке</label>
-        <select #ratingSelect (change)="onRatingChange(ratingSelect.value)">
-          <option value="">Все оценки</option>
-          <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-          <option value="4">⭐⭐⭐⭐ (4)</option>
-          <option value="3">⭐⭐⭐ (3)</option>
-          <option value="2">⭐⭐ (2)</option>
-          <option value="1">⭐ (1)</option>
-        </select>
-      </div>
-      
-      @if (hasActiveFilters$ | async) {
-        <button 
-          class="btn-clear" 
-          (click)="clearFilters()">
-          Сбросить фильтры
-        </button>
-      }
-    </div>
+  <div class="header d-flex justify-space-between align-items-center m-b-24">
+    <h2>Список прочитанных книг</h2>
+    <button matButton="elevated"  routerLink="/book/add">Добавить книгу</button>
   </div>
 
-  <div class="add-button-container">
-    <button class="btn-add" routerLink="/book/add">Добавить книгу</button>
-  </div>
+  <mat-accordion>
+    <mat-expansion-panel (opened)="panelOpenState.set(true)" (closed)="panelOpenState.set(false)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>Фильтр</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="filters-panel">
+        <div class="filters-grid">
+          <div class="filter-group">
+            <mat-form-field>
+              <mat-label>По названию</mat-label>
+              <input
+                matInput
+                type="text" 
+                #title
+                (input)="onTitleSearch(title.value)"
+                placeholder="Название книги..."
+              >
+            </mat-form-field>
+          </div>
+          
+          <div class="filter-group">
+            <mat-form-field>
+              <mat-label>По автору</mat-label>
+              <input
+                matInput
+                type="text" 
+                #author
+                (input)="onAuthorSearch(author.value)"
+                placeholder="Фамилия автора..."
+              />
+            </mat-form-field>
+          </div>
+          
+          <div class="filter-group">
+            <mat-form-field>
+              <mat-label>По оценке</mat-label>
+              <mat-select
+                #rating
+                (selectionChange)="onRatingChange(rating.value)"
+              >
+                <mat-option value="">Все оценки</mat-option>
+                <mat-option value="5">⭐⭐⭐⭐⭐ (5)</mat-option>
+                <mat-option value="4">⭐⭐⭐⭐ (4)</mat-option>
+                <mat-option value="3">⭐⭐⭐ (3)</mat-option>
+                <mat-option value="2">⭐⭐ (2)</mat-option>
+                <mat-option value="1">⭐ (1)</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          
+          <button
+            matButton="elevated"
+            class="btn-clear"
+            [class.show]="hasActiveFilters$ | async"
+            (click)="clearFilters()">
+            Сбросить фильтр
+          </button>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
 
   @if (totalCount$ | async; as totalCount) {
     <div class="info-bar">
@@ -59,17 +77,17 @@
   }
 
   @if (loading$ | async) {
-    <div class="loading-spinner">
-      Загрузка...
+    <div class="loading-overlay">
+      <mat-spinner></mat-spinner>
+      <p>Загрузка...</p>
     </div>
   } @else {
-    <div class="books-grid">
-      @if ((books$ | async)?.length === 0) {
-        <div class="empty-state">
-          <p>Нет книг в этом списке</p>
-          <button routerLink="/book/add">Добавить первую книгу</button>
-        </div>
-      }
+    @if ((books$ | async)?.length === 0) {
+      <div class="empty-state">
+        <p>Ничего не найдено</p>
+      </div>
+    }
+    <div class="books-grid">      
       @for (book of (paginatedBooks$ | async)?.paginatedItems; track book) {
         <app-book-card
           [book]="book"

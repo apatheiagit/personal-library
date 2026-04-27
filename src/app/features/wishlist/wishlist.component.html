@@ -1,39 +1,14 @@
 <app-error-display />
 
 <div class="wishlist-container">
-  <div class="header">
+  <div class="header d-flex justify-space-between align-items-center m-b-24">
     <h2>Список желаемых книг</h2>
-    <button class="btn-add" routerLink="/book/add">Добавить книгу</button>
-  </div>
-
-  <div class="search-box">
-    <div class="search-wrapper">
-      <span class="search-icon">🔍</span>
-      <input 
-        type="text" 
-        #searchInput
-        (input)="onSearch(searchInput.value)"
-        placeholder="Поиск по названию или автору..."
-        class="search-input"
-      />
-      @if (searchInput.value) {
-        <button 
-          class="search-clear" 
-          (click)="clearSearch(); searchInput.value = ''">
-          Очистить
-        </button>
-      }
-    </div>
-    @if (booksCount$ | async; as count) {
-      <div class="search-info">
-        Найдено книг: {{ count }}
-      </div>
-    }
+    <button matButton="elevated" routerLink="/book/add">Добавить книгу</button>
   </div>
 
   @if (loading$ | async) {
-    <div class="loading-spinner">
-      <div class="spinner"></div>
+    <div class="loading-overlay">
+      <mat-spinner></mat-spinner>
       <p>Загрузка списка желаний...</p>
     </div>
   }
@@ -41,33 +16,18 @@
   @if ((error$ | async) && (loading$ | async) === false) {
     <div class="error-state">
       <p>{{ error$ | async }}</p>
-      <button (click)="clearError()" class="btn-retry">Повторить</button>
+      <button matButton="elevated" (click)="clearError()" class="btn-retry">Повторить</button>
     </div>
   }
 
   @if ((loading$ | async) === false && (error$ | async) === null) {
+    @if ((wishlistBooks$ | async)?.length === 0) {
+      <div class="empty-state">
+        <p>Список желаний пуст</p>
+      </div>
+    }
     <div class="books-grid">
-      @if ((filteredBooks$ | async)?.length === 0) {
-        <div class="empty-state">
-          @if (searchTerm$ | async) {
-            <p>
-              Ничего не найдено по вашему запросу
-            </p>
-          } @else {
-            <p>Список желаний пуст</p>
-            <p class="empty-hint">Добавьте книги, которые хотите прочитать</p>
-          }
-          <button routerLink="/book/add" class="btn-add">
-            Добавить первую книгу
-          </button>
-          @if (searchTerm$ | async) {
-            <button (click)="clearSearch(); searchInput.value = ''" class="btn-clear-search">
-              Очистить поиск
-            </button>
-          }
-        </div>
-      }
-      @for (book of filteredBooks$ | async; track book) {
+      @for (book of wishlistBooks$ | async; track book) {
         <app-book-card
           [book]="book"
           [isReaded]="false"

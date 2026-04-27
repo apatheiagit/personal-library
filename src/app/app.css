@@ -1,5 +1,5 @@
 .navbar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--n-sec-background-fill-color);
   padding: 1rem 2rem;
   color: white;
   display: flex;
@@ -28,7 +28,6 @@
 
       &.active {
         background: rgba(255,255,255,0.3);
-        font-weight: bold;
       }
     }
   }

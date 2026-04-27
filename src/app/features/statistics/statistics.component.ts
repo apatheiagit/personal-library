@@ -1,16 +1,17 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { map } from 'rxjs/operators';
+import { MatButtonModule } from '@angular/material/button';
 import { BookService } from '../../core/services/book.service';
 import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
-import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-statistics',
   standalone: true,
-  imports: [CommonModule, ErrorDisplayComponent],
+  imports: [CommonModule, ErrorDisplayComponent, MatButtonModule],
   templateUrl: './statistics.component.html',
   styleUrls: ['./statistics.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StatisticsComponent {
   private bookService = inject(BookService);
@@ -22,8 +23,8 @@ export class StatisticsComponent {
     map(stats => 
       Object.entries(stats.byYear)
         .map(([year, count]) => ({ year: parseInt(year), count }))
-        .sort((a, b) => b.year - a.year)
-    )
+        .sort((a, b) => b.year - a.year),
+    ),
   );
 
   refresh(): void {

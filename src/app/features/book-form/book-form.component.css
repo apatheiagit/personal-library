@@ -1,7 +1,7 @@
 .book-form-container {
   max-width: 600px;
   margin: 0 auto;
-  background: white;
+  background: var(--n-prim-fill-color);
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -9,104 +9,16 @@
   h2 {
     margin-top: 0;
     margin-bottom: 1.5rem;
-    color: #333;
   }
 
-  .form-group {
-    margin-bottom: 1.5rem;
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: #555;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s;
-
-      &:focus {
-        outline: none;
-        border-color: #667eea;
-      }
-
-      &.is-invalid {
-        border-color: #dc3545;
-      }
-    }
-
-    textarea {
-      resize: vertical;
-      font-family: inherit;
-    }
-
-    .error-message {
-      color: #dc3545;
-      font-size: 0.85rem;
-      margin-top: 0.25rem;
-    }
-
-    .rating-input {
-      display: flex;
-      gap: 0.5rem;
-
-      .star-btn {
-        font-size: 2rem;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        opacity: 0.3;
-        transition: opacity 0.2s;
-
-        &.active {
-          opacity: 1;
-        }
-
-        &:hover {
-          opacity: 0.8;
-        }
-      }
-    }
+  #rating {
+    display: none;
   }
-
+ 
   .form-actions {
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
     margin-top: 2rem;
-
-    button {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: opacity 0.2s;
-
-      &:hover {
-        opacity: 0.9;
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-
-    .btn-cancel {
-      background: #6c757d;
-      color: white;
-    }
-
-    .btn-submit {
-      background: #28a745;
-      color: white;
-    }
   }
 }
