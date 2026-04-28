@@ -184,6 +184,9 @@ body {
 .p-t-8 {
   padding-top: 8px;
 }
+.p-b-24 {
+  padding-bottom: 24px;
+}
 .align-items-center {
   align-items: center;
 }

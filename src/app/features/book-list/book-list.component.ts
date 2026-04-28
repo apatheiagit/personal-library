@@ -12,6 +12,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { BookService } from '../../core/services/book.service';
 import { FilterService } from '../../core/services/filter.service';
 import { PaginationService } from '../../core/services/pagination.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Rating, ReadingStatus } from '../../core/models/book.model';
 import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
@@ -33,6 +34,7 @@ export class BookListComponent implements OnInit{
   private bookService = inject(BookService);
   private filterService = inject(FilterService);
   private paginationService = inject(PaginationService);
+  private toastService = inject(ToastService);
 
   loading$ = this.bookService.loading$;
   books$ = this.bookService.filterBooks(this.filterService.filters$);
@@ -101,10 +103,27 @@ export class BookListComponent implements OnInit{
   }
 
   moveToWishlist(id: string): void {
-    this.bookService.changeStatus(id, ReadingStatus.WANT_TO_READ).subscribe();
+    const book = (this.bookService.readBooks$ as any).source['_value']?.find((b: any) => b.id === id);
+    const bookTitle = book?.title || 'Книга';
+
+    this.bookService.changeStatus(id, ReadingStatus.WANT_TO_READ).subscribe({
+      next: () => {
+        this.toastService.info(
+          'Статус изменен', 
+          `"${bookTitle}" перемещена в список желаемых`,
+          5000,
+        );
+      },
+      error: () => {
+        this.toastService.error('Ошибка', `Не удалось переместить книгу "${bookTitle}"`);
+      },
+    });
   }
 
   openDeleteDialog(id: string): void {
+    const book = (this.bookService.readBooks$ as any).source['_value']?.find((b: any) => b.id === id);
+    const bookTitle = book?.title || 'Книга';
+
     const dialogRef = this.dialog.open(
       DialogComponent, 
       {
@@ -119,7 +138,14 @@ export class BookListComponent implements OnInit{
         filter(x => !!x),
         switchMap(() => this.bookService.deleteBook(id)),
       )
-      .subscribe();
+      .subscribe({
+        next: () => {
+          this.toastService.success('Книга удалена', `"${bookTitle}" удалена из библиотеки`);
+        },
+        error: () => {
+          this.toastService.error('Ошибка', `Не удалось удалить книгу "${bookTitle}"`);
+        },
+      });
   }
   
 }

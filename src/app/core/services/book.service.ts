@@ -5,7 +5,7 @@ import { Book, NewBook, ReadingStatus, UpdateBook, BookFilters } from '../models
 import { ApiService } from './api.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BookService {
   private apiService = inject(ApiService);
@@ -26,18 +26,18 @@ export class BookService {
       catchError(error => {
         this.errorSubject.next(error.message);
         return of([]);
-      })
+      }),
     )),
     tap(() => this.loadingSubject.next(false)),
-    shareReplay(1)
+    shareReplay(1),
   );
   
   readBooks$: Observable<Book[]> = this.books$.pipe(
-    map(books => books.filter(book => book.status === ReadingStatus.READ))
+    map(books => books.filter(book => book.status === ReadingStatus.READ)),
   );
   
   wishlistBooks$: Observable<Book[]> = this.books$.pipe(
-    map(books => books.filter(book => book.status === ReadingStatus.WANT_TO_READ))
+    map(books => books.filter(book => book.status === ReadingStatus.WANT_TO_READ)),
   );
   
   statistics$ = this.books$.pipe(
@@ -61,10 +61,10 @@ export class BookService {
         totalWishlist: wishlistBooks.length,
         averageRating: parseFloat(averageRating.toFixed(1)),
         totalBooks: books.length,
-        byYear
+        byYear,
       };
     }),
-    shareReplay(1)
+    shareReplay(1),
   );
 
   getBookById(id: string): Observable<Book> {
@@ -75,14 +75,14 @@ export class BookService {
       catchError(error => {
         this.errorSubject.next(`Книга с id ${id} не найдена`);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
   addBook(newBook: NewBook): Observable<Book> {
     const bookToAdd = {
       ...newBook,
-      addedDate: new Date().toISOString()
+      addedDate: new Date().toISOString(),
     };
     
     return this.apiService.addBook(bookToAdd).pipe(
@@ -90,7 +90,7 @@ export class BookService {
       catchError(error => {
         this.errorSubject.next('Не удалось добавить книгу');
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -100,7 +100,7 @@ export class BookService {
       catchError(error => {
         this.errorSubject.next('Не удалось обновить книгу');
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -110,7 +110,7 @@ export class BookService {
       catchError(error => {
         this.errorSubject.next('Не удалось обновить книгу');
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -120,7 +120,7 @@ export class BookService {
       catchError(error => {
         this.errorSubject.next('Не удалось удалить книгу');
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -131,7 +131,7 @@ export class BookService {
       updates = {
         ...updates,
         rating: undefined,
-        personalReview: undefined
+        personalReview: undefined,
       };
     }
     
@@ -141,7 +141,7 @@ export class BookService {
   filterBooks(filters$: Observable<BookFilters>): Observable<Book[]> {
     return combineLatest([
       this.books$,
-      filters$
+      filters$,
     ]).pipe(
       map(([books, filters]) => {
         return books.filter(book => {
@@ -161,7 +161,7 @@ export class BookService {
           
           return matches;
         });
-      })
+      }),
     );
   }
 
@@ -179,7 +179,7 @@ export class BookService {
       catchError(error => {
         this.errorSubject.next('Не удалось экспортировать данные');
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -196,7 +196,7 @@ export class BookService {
         catchError(error => {
           this.errorSubject.next('Не удалось импортировать данные');
           return throwError(() => error);
-        })
+        }),
       );
     } catch (error) {
       this.errorSubject.next('Неверный формат JSON');
@@ -212,7 +212,7 @@ export class BookService {
           ? combineLatest(deleteOperations)
           : of([]);
       }),
-      map(() => [])
+      map(() => []),
     );
   }
 

@@ -1,0 +1,18 @@
+<div class="toast-container">
+  @for (toast of toasts(); track toast.id) {
+    <div 
+      class="toast" 
+      [class]="'toast-' + toast.type" 
+      >
+      <div class="toast-content">
+        <div class="toast-title">{{ toast.title }}</div>
+        <div class="toast-message">{{ toast.message }}</div>
+      </div>
+      <button class="toast-close" (click)="remove(toast.id)">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M1.06695 0.183058C0.822872 -0.0610194 0.427144 -0.0610194 0.183066 0.183058C-0.0610121 0.427136 -0.0610121 0.822864 0.183066 1.06694L4.74112 5.625L0.183058 10.1831C-0.0610194 10.4271 -0.0610194 10.8229 0.183058 11.0669C0.427136 11.311 0.822864 11.311 1.06694 11.0669L5.62501 6.50888L10.1831 11.067C10.4271 11.311 10.8229 11.311 11.067 11.067C11.311 10.8229 11.311 10.4271 11.067 10.1831L6.50889 5.625L11.0669 1.06695C11.311 0.822871 11.311 0.427143 11.0669 0.183065C10.8229 -0.0610128 10.4271 -0.0610125 10.1831 0.183065L5.62501 4.74112L1.06695 0.183058Z" fill="#212C3A"/>
+        </svg>  
+      </button>
+    </div>
+  }
+</div>

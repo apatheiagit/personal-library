@@ -16,9 +16,9 @@ export class PaginationComponent {
   @Output() pageChange = new EventEmitter<number>();
   @Output() itemsPerPageChange = new EventEmitter<number>();
   
-  itemsPerPageOptions = [10, 20, 50];
+  itemsPerPageOptions = [9, 18, 36];
 
-  readonly minItemsPerPage = 10;
+  readonly minItemsPerPage = 9;
   
   get pages(): number[] {
     const { currentPage, totalPages } = this.paginationState;
@@ -65,7 +65,7 @@ export class PaginationComponent {
   getEndIndex(): number {
     return Math.min(
       this.paginationState.currentPage * this.paginationState.itemsPerPage,
-      this.paginationState.totalItems
+      this.paginationState.totalItems,
     );
   }
   

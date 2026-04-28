@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { combineLatest, Subject } from 'rxjs';
-import { debounceTime, filter, finalize, map, shareReplay, startWith, switchMap, takeUntil } from 'rxjs/operators';
+import { combineLatest, Observable, Subject } from 'rxjs';
+import { debounceTime, filter, finalize, map, shareReplay, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,7 +11,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { BookService } from '../../core/services/book.service';
-import { Rating, ReadingStatus } from '../../core/models/book.model';
+import { ToastService } from '../../core/services/toast.service';
+import { Book, Rating, ReadingStatus } from '../../core/models/book.model';
 import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
 
 @Component({
@@ -33,6 +34,7 @@ export class BookFormComponent implements OnDestroy {
 
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
+  private toastService = inject(ToastService);
 
   private bookId$ = this.route.paramMap.pipe(
     map(params => params.get('id')),
@@ -150,46 +152,64 @@ export class BookFormComponent implements OnDestroy {
   onSubmit(): void {
     if (this.bookForm.invalid) {
       this.markAllTouched();
+      this.toastService.warning(
+        'Не заполнены поля',
+        'Пожалуйста, заполните все обязательные поля',
+      );
       return;
     }
 
     const formValue = this.bookForm.value;
+    const bookTitle = formValue.title;
     
     if (formValue.status !== ReadingStatus.READ) {
       delete formValue.rating;
     }
 
     this.loading$.next(true);
-    
-    const saveOperation$ = this.isEditMode$.pipe(
-      switchMap(isEdit => {
-        if (isEdit) {
-          return this.bookId$.pipe(
-            switchMap(id => this.bookService.getBookById(id!)),
-            switchMap(book => this.bookService.updateBook(book.id, { ...book, ...formValue })),
-          );
-        } else {
-          return this.bookService.addBook(formValue);
-        }
-      }),
-    );
-    
-    saveOperation$.pipe(
-      finalize(() => this.loading$.next(false)),
-      takeUntil(this.destroy$),
-    ).subscribe({
-      next: () => {
-        localStorage.removeItem('book_draft');
-        alert('Книга успешно сохранена!');
-        if (this.bookForm.value.status === ReadingStatus.WANT_TO_READ) {
-          this.router.navigate(['/wishlist']);
-        } else {
-          this.router.navigate(['/books']);
-        }
-      },
-      error: (error) => {
-        console.error('Ошибка сохранения:', error);
-      },
+
+    this.isEditMode$.pipe(takeUntil(this.destroy$)).subscribe(isEdit => {
+      if (isEdit) {
+        this.bookId$.pipe(
+          takeUntil(this.destroy$),
+          switchMap(id => this.bookService.getBookById(id!)),
+          switchMap(book => this.bookService.updateBook(book.id, { ...book, ...formValue })),
+        ).subscribe({
+          next: () => {
+            this.loading$.next(false);
+            localStorage.removeItem('book_draft');
+            this.toastService.success('Книга обновлена', `"${bookTitle}" успешно обновлена`);
+            if (this.bookForm.value.status === ReadingStatus.WANT_TO_READ) {
+              this.router.navigate(['/wishlist']);
+            } else {
+              this.router.navigate(['/books']);
+            }
+          },
+          error: (error) => {
+            console.error('Ошибка сохранения:', error);
+            this.loading$.next(false);
+            this.toastService.error('Ошибка обновления', `Не удалось обновить книгу "${bookTitle}"`);
+          }
+        });
+      } else {
+        this.bookService.addBook(formValue).subscribe({
+          next: () => {
+            this.loading$.next(false);
+            localStorage.removeItem('book_draft');
+            this.toastService.success('Книга добавлена', `"${bookTitle}" успешно добавлена`);
+            if (this.bookForm.value.status === ReadingStatus.WANT_TO_READ) {
+              this.router.navigate(['/wishlist']);
+            } else {
+              this.router.navigate(['/books']);
+            }
+          },
+          error: (error) => {
+            console.error('Ошибка сохранения:', error);
+            this.loading$.next(false);
+            this.toastService.error('Ошибка добавления', `Не удалось добавить книгу "${bookTitle}"`);
+          },
+        });
+      }
     });
   }
 

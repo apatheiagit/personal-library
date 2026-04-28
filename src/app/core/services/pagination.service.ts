@@ -10,18 +10,18 @@ export interface PaginationState {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PaginationService {
   private currentPageSubject = new BehaviorSubject<number>(1);
-  private itemsPerPageSubject = new BehaviorSubject<number>(10);
+  private itemsPerPageSubject = new BehaviorSubject<number>(9);
   
   currentPage$ = this.currentPageSubject.asObservable().pipe(
-    distinctUntilChanged()
+    distinctUntilChanged(),
   );
   
   itemsPerPage$ = this.itemsPerPageSubject.asObservable().pipe(
-    distinctUntilChanged()
+    distinctUntilChanged(),
   );
 
 
@@ -41,7 +41,7 @@ export class PaginationService {
     return combineLatest([
       items$,
       this.currentPage$,
-      this.itemsPerPage$
+      this.itemsPerPage$,
     ]).pipe(
       map(([items, currentPage, itemsPerPage]) => {
         const totalItems = items.length;
@@ -63,10 +63,10 @@ export class PaginationService {
             currentPage: validPage,
             itemsPerPage,
             totalItems,
-            totalPages
-          }
+            totalPages,
+          },
         };
-      })
+      }),
     );
   }
 
