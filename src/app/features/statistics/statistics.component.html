@@ -1,5 +1,3 @@
-<app-error-display />
-
 <div class="statistics-container">
   <h2>Статистика чтения</h2>
   
@@ -10,14 +8,7 @@
     </div>
   }
 
-  @if ((error$ | async) && (loading$ | async) === false) {
-    <div class="error-state">
-      <p>{{ error$ | async }}</p>
-      <button (click)="clearError()" class="btn-retry">Повторить</button>
-    </div>
-  }
-
-  @if ((loading$ | async) === false && (error$ | async) === null) {
+  @if ((loading$ | async) === false) {
     @if (stats$ | async; as stats) {
       <div class="stats-grid">
         <div class="stat-card">

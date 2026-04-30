@@ -18,4 +18,12 @@ import {
 export class DialogComponent {
   readonly dialogRef = inject(MatDialogRef<DialogComponent>);
   constructor(@Inject(MAT_DIALOG_DATA) public data: any) {}
+
+  public close(): void {
+    this.dialogRef.close(false);
+  }
+
+  public confirm(): void {
+    this.dialogRef.close(true);
+  }
 }

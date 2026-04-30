@@ -14,7 +14,6 @@ import { FilterService } from '../../core/services/filter.service';
 import { PaginationService } from '../../core/services/pagination.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Rating, ReadingStatus } from '../../core/models/book.model';
-import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { BookCardComponent } from '../../shared/book-card/book-card.component';
 import { DialogComponent } from '../../shared/dialog/dialog.component';
@@ -22,7 +21,7 @@ import { DialogComponent } from '../../shared/dialog/dialog.component';
 @Component({
   selector: 'app-book-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ErrorDisplayComponent, PaginationComponent, BookCardComponent, MatButtonModule,
+  imports: [CommonModule, RouterModule, PaginationComponent, BookCardComponent, MatButtonModule,
     MatSelectModule, MatInputModule, MatFormFieldModule, MatProgressSpinnerModule, MatExpansionModule,
    ],
   templateUrl: './book-list.component.html',
@@ -114,9 +113,6 @@ export class BookListComponent implements OnInit{
           5000,
         );
       },
-      error: () => {
-        this.toastService.error('Ошибка', `Не удалось переместить книгу "${bookTitle}"`);
-      },
     });
   }
 
@@ -141,9 +137,6 @@ export class BookListComponent implements OnInit{
       .subscribe({
         next: () => {
           this.toastService.success('Книга удалена', `"${bookTitle}" удалена из библиотеки`);
-        },
-        error: () => {
-          this.toastService.error('Ошибка', `Не удалось удалить книгу "${bookTitle}"`);
         },
       });
   }

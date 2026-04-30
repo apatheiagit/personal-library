@@ -10,6 +10,8 @@
   --n-prim-danger-fill-color: #d34e4e;
   --n-accent-txt-ic-color: #343dff;
   --n-prim-info-fill-color: #bec2ff;
+  --n-prim-border-color: #cacdd0;
+  --n-sec-border-color: #a6abb0;
 }
 * {
   margin: 0;
@@ -27,7 +29,9 @@ body {
 .loading-overlay {
   text-align: center;
   padding: 3rem;
-  
+  mat-spinner {
+    margin: 1rem auto;
+  }
   p {
     margin-top: 1rem;
     color: var(--n-sec-txt-ic-color);
@@ -203,7 +207,8 @@ app-book-card {
   display: block;
   height: 100%;
 }
-.mat-mdc-icon-button.active .mat-icon {
+.mat-mdc-icon-button.active .mat-icon,
+.mat-mdc-icon-button.active .pagination-page{
   color: var(--n-accent-txt-ic-color);
 }
 .mdc-button.btn-clear {

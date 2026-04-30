@@ -3,6 +3,6 @@
   {{ data.message }}
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button matButton mat-dialog-close>Нет</button>
-  <button matButton mat-dialog-close cdkFocusInitial>Да</button>
+  <button matButton mat-dialog-close (onClick)="close()">Нет</button>
+  <button matButton mat-dialog-close cdkFocusInitial (onClick)="confirm()">Да</button>
 </mat-dialog-actions>

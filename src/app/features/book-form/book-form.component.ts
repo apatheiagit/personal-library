@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { combineLatest, Observable, Subject } from 'rxjs';
-import { debounceTime, filter, finalize, map, shareReplay, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Subject, combineLatest } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, filter, finalize, map, shareReplay, switchMap, take } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,31 +11,33 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDialog } from '@angular/material/dialog';
 import { BookService } from '../../core/services/book.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Book, Rating, ReadingStatus } from '../../core/models/book.model';
-import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
+import { Rating, ReadingStatus } from '../../core/models/book.model';
+import { DialogComponent } from '../../shared/dialog/dialog.component';
 
 @Component({
   selector: 'app-book-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, ErrorDisplayComponent,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule,
     MatButtonModule, MatSelectModule, MatInputModule, MatFormFieldModule, MatIconModule, MatProgressSpinnerModule,
   ],
   templateUrl: './book-form.component.html',
   styleUrls: ['./book-form.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BookFormComponent implements OnDestroy {
+export class BookFormComponent  {
   public router = inject(Router);
   public bookService = inject(BookService);
+  readonly dialog = inject(MatDialog);
   bookForm: FormGroup;
   ReadingStatus = ReadingStatus;
-  private destroy$ = new Subject<void>();
 
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private toastService = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
   private bookId$ = this.route.paramMap.pipe(
     map(params => params.get('id')),
@@ -52,8 +55,6 @@ export class BookFormComponent implements OnDestroy {
   );
   
   loading$ = new Subject<boolean>();
-  
-  validationErrors$: unknown;
 
   constructor() {
     this.bookForm = this.fb.group({
@@ -67,25 +68,12 @@ export class BookFormComponent implements OnDestroy {
     this.loadBookIfEditMode();
     this.setupStatusListener();
     this.setupAutoSave();
-    this.validationErrors$ = this.bookForm.statusChanges.pipe(
-      startWith(this.bookForm.status),
-      map(() => {
-        const errors: any = {};
-        Object.keys(this.bookForm.controls).forEach(key => {
-          const control = this.bookForm.get(key);
-          if (control?.invalid && control?.touched) {
-            errors[key] = control.errors;
-          }
-        });
-        return errors;
-      }),
-    );
   }
 
   private loadBookIfEditMode(): void {
-    this.bookToEdit$.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(book => {
+    this.bookToEdit$
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(book => {
       this.bookForm.patchValue({
         title: book.title,
         author: book.author,
@@ -99,23 +87,23 @@ export class BookFormComponent implements OnDestroy {
   }
 
   private setupStatusListener(): void {
-    this.bookForm.get('status')?.valueChanges.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(status => {
+    this.bookForm.get('status')?.valueChanges
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(status => {
       this.toggleRatingReviewFields(status);
     });
   }
 
   private setupAutoSave(): void {
-    this.bookForm.valueChanges.pipe(
-      filter(() => this.bookForm.valid),
+    this.bookForm.valueChanges
+    .pipe(
+      filter(() => this.bookForm.valid && !!this.bookForm.get('title')?.value && !!this.bookForm.get('author')?.value && !!this.bookForm.get('personalReview')?.value),
       debounceTime(30000),
-      takeUntil(this.destroy$),
-    ).subscribe(formValue => {
-      if (formValue.title && formValue.author) {
-        localStorage.setItem('book_draft', JSON.stringify(formValue));
-        console.log('Черновик сохранен');
-      }
+      takeUntilDestroyed(this.destroyRef),
+    )
+    .subscribe(formValue => {
+      localStorage.setItem('book_draft', JSON.stringify(formValue));
+      this.toastService.info('Черновик сохранен', 'Все изменения сохранены в черновике');
     });
     
     const draft = localStorage.getItem('book_draft');
@@ -168,49 +156,44 @@ export class BookFormComponent implements OnDestroy {
 
     this.loading$.next(true);
 
-    this.isEditMode$.pipe(takeUntil(this.destroy$)).subscribe(isEdit => {
-      if (isEdit) {
-        this.bookId$.pipe(
-          takeUntil(this.destroy$),
-          switchMap(id => this.bookService.getBookById(id!)),
-          switchMap(book => this.bookService.updateBook(book.id, { ...book, ...formValue })),
-        ).subscribe({
-          next: () => {
-            this.loading$.next(false);
-            localStorage.removeItem('book_draft');
-            this.toastService.success('Книга обновлена', `"${bookTitle}" успешно обновлена`);
-            if (this.bookForm.value.status === ReadingStatus.WANT_TO_READ) {
-              this.router.navigate(['/wishlist']);
-            } else {
-              this.router.navigate(['/books']);
-            }
-          },
-          error: (error) => {
-            console.error('Ошибка сохранения:', error);
-            this.loading$.next(false);
-            this.toastService.error('Ошибка обновления', `Не удалось обновить книгу "${bookTitle}"`);
+    this.isEditMode$
+      .pipe(
+        take(1),
+        switchMap(isEdit => {
+          if (isEdit) {
+            return this.bookId$.pipe(
+              take(1),
+              switchMap(id => this.bookService.getBookById(id!)),
+              switchMap(book => this.bookService.updateBook(book.id, { ...book, ...formValue })),
+            );
+          } else {
+            return this.bookService.addBook(formValue);
           }
-        });
-      } else {
-        this.bookService.addBook(formValue).subscribe({
-          next: () => {
-            this.loading$.next(false);
-            localStorage.removeItem('book_draft');
-            this.toastService.success('Книга добавлена', `"${bookTitle}" успешно добавлена`);
-            if (this.bookForm.value.status === ReadingStatus.WANT_TO_READ) {
-              this.router.navigate(['/wishlist']);
-            } else {
-              this.router.navigate(['/books']);
-            }
-          },
-          error: (error) => {
-            console.error('Ошибка сохранения:', error);
-            this.loading$.next(false);
-            this.toastService.error('Ошибка добавления', `Не удалось добавить книгу "${bookTitle}"`);
-          },
-        });
-      }
-    });
+        }),
+        finalize(() => this.loading$.next(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          localStorage.removeItem('book_draft');
+          this.isEditMode$
+            .pipe(take(1))
+            .subscribe(isEdit => {
+              if (isEdit)
+                this.toastService.success('Книга обновлена', `"${bookTitle}" успешно обновлена`);
+              else
+                this.toastService.success('Книга добавлена', `"${bookTitle}" успешно добавлена в библиотеку`);
+            });
+          
+          if (this.bookForm.value.status === ReadingStatus.WANT_TO_READ)
+            this.router.navigate(['/wishlist']);
+          else
+            this.router.navigate(['/books']);
+        },
+        error: (error) => {
+          console.error('Ошибка сохранения:', error);
+        },
+      });
   }
 
   private markAllTouched(): void {
@@ -222,17 +205,25 @@ export class BookFormComponent implements OnDestroy {
 
   cancel(): void {
     if (this.bookForm.dirty) {
-      if (confirm('У вас есть несохраненные изменения. Выйти без сохранения?')) {
-        this.router.navigate(['/books']);
-      }
+      const dialogRef = this.dialog.open(
+        DialogComponent, 
+        {
+          data: {
+            title: 'Внимание!',
+            message: 'У вас есть несохраненные изменения. Выйти без сохранения?',
+          },
+        },
+      );
+      dialogRef.afterClosed().subscribe((x) => {
+        console.log(x);
+        if (x) {
+          this.router.navigate(['/books']);
+        } else {
+          dialogRef.close();
+        }
+      });
     } else {
       this.router.navigate(['/books']);
     }
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.loading$.complete();
   }
 }

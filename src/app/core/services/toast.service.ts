@@ -16,7 +16,8 @@ export class ToastService {
   private toastsSubject = new BehaviorSubject<Toast[]>([]);
   toasts$ = this.toastsSubject.asObservable();
   
-  private readonly DEFAULT_DURATION = 3000; 
+  private readonly DEFAULT_DURATION = 3000;
+  private readonly ERROR_DURATION = 5000;
 
   success(title: string, message: string, duration?: number): void {
     this.show({ 
@@ -34,7 +35,7 @@ export class ToastService {
       type: 'error', 
       title, 
       message, 
-      duration: duration || this.DEFAULT_DURATION, 
+      duration: duration || this.ERROR_DURATION, 
     });
   }
 
@@ -56,6 +57,20 @@ export class ToastService {
       message, 
       duration: duration || this.DEFAULT_DURATION,
     });
+  }
+
+  showHttpError(error: any, defaultMessage = 'Произошла ошибка'): void {
+    let errorMessage = defaultMessage;
+    
+    if (error?.error?.message) {
+      errorMessage = error.error.message;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
+    this.error('Ошибка', errorMessage);
   }
 
   private show(toast: Toast): void {

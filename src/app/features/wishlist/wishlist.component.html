@@ -1,5 +1,3 @@
-<app-error-display />
-
 <div class="wishlist-container">
   <div class="header d-flex justify-space-between align-items-center m-b-24">
     <h2>Список желаемых книг</h2>
@@ -11,23 +9,14 @@
       <mat-spinner></mat-spinner>
       <p>Загрузка списка желаний...</p>
     </div>
-  }
-
-  @if ((error$ | async) && (loading$ | async) === false) {
-    <div class="error-state">
-      <p>{{ error$ | async }}</p>
-      <button matButton="elevated" (click)="clearError()" class="btn-retry">Повторить</button>
-    </div>
-  }
-
-  @if ((loading$ | async) === false && (error$ | async) === null) {
+  } @else {
     @if ((wishlistBooks$ | async)?.length === 0) {
       <div class="empty-state">
         <p>Список желаний пуст</p>
       </div>
     }
     <div class="books-grid">
-      @for (book of wishlistBooks$ | async; track book) {
+      @for (book of (paginatedBooks$ | async)?.paginatedItems; track book) {
         <app-book-card
           [book]="book"
           [isReaded]="false"
@@ -36,5 +25,12 @@
         ></app-book-card>
       }
     </div>
+    @if ((paginatedBooks$ | async)?.paginationState; as paginationState) {
+      <app-pagination 
+        [paginationState]="paginationState"
+        (pageChange)="onPageChange($event)"
+        (itemsPerPageChange)="onItemsPerPageChange($event)">
+      </app-pagination>
+    }
   }
 </div>

@@ -1,85 +1,41 @@
 .pagination-container {
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--n-prim-border-color);
   
   .pagination-info {
     text-align: center;
-    color: #666;
     font-size: 0.9rem;
     margin-bottom: 1rem;
+    color: var(--n-sec-txt-ic-color);
   }
   
   .pagination-controls {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-    
-    .items-per-page {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      
-      label {
-        color: #666;
-        font-size: 0.9rem;
-      }
-      
-      select {
-        padding: 0.4rem 0.6rem;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        background: white;
-        cursor: pointer;
-        
-        &:focus {
-          outline: none;
-          border-color: #667eea;
-        }
-      }
-    }
     
     .pagination-buttons {
       display: flex;
       gap: 0.3rem;
       flex-wrap: wrap;
-      
-      .pagination-btn {
-        min-width: 36px;
-        height: 36px;
-        padding: 0 0.6rem;
-        border: 1px solid #ddd;
-        background: white;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-        
-        &:hover:not(:disabled) {
-          background: #f0f0f0;
-          border-color: #667eea;
-        }
-        
-        &.active {
-          background: #667eea;
-          color: white;
-          border-color: #667eea;
-        }
-        
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      }
-      
+
       .pagination-dots {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         min-width: 36px;
         height: 36px;
-        color: #999;
+        color: var(--n-sec-txt-ic-color);
+      }
+
+      .pagination-page {
+        font-size: 1rem;
+        line-height: 1rem;
+        font-weight: 600;
+        display: block;
       }
     }
   }

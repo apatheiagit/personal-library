@@ -1,8 +1,0 @@
-@if (error$ | async) {
-    <div class="error-toast">
-        <div class="error-content">
-        <span class="error-message">{{ error$ | async }}</span>
-        <button class="error-close" (click)="clearError()">✕</button>
-        </div>
-    </div>
-}

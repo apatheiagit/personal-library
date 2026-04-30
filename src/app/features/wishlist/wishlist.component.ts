@@ -7,15 +7,17 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { BookService } from '../../core/services/book.service';
 import { ToastService } from '../../core/services/toast.service';
+import { PaginationService } from '../../core/services/pagination.service';
 import { ReadingStatus } from '../../core/models/book.model';
-import { ErrorDisplayComponent } from '../../shared/error-display/error-display.component';
 import { BookCardComponent } from '../../shared/book-card/book-card.component';
 import { DialogComponent } from '../../shared/dialog/dialog.component';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-wishlist',
   standalone: true,
-  imports: [CommonModule, RouterModule, ErrorDisplayComponent, BookCardComponent, MatProgressSpinnerModule, MatButtonModule ],
+  imports: [CommonModule, RouterModule, BookCardComponent, 
+    MatProgressSpinnerModule, MatButtonModule, PaginationComponent ],
   templateUrl: './wishlist.component.html',
   styleUrls: ['./wishlist.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,11 +26,19 @@ export class WishlistComponent {
   readonly dialog = inject(MatDialog);
   private bookService = inject(BookService);
   private toastService = inject(ToastService);
+  private paginationService = inject(PaginationService);
   
   loading$ = this.bookService.loading$;
-  error$ = this.bookService.error$;
   wishlistBooks$ = this.bookService.wishlistBooks$;
+  paginatedBooks$ = this.paginationService.getPaginationState(this.wishlistBooks$);
   
+  onPageChange(page: number): void {
+    this.paginationService.setCurrentPage(page);
+  }
+
+  onItemsPerPageChange(itemsPerPage: number): void {
+    this.paginationService.setItemsPerPage(itemsPerPage);
+  }
 
   moveToRead(id: string): void {
     const book = (this.bookService.wishlistBooks$ as any).source['_value']?.find((b: any) => b.id === id);
@@ -42,14 +52,7 @@ export class WishlistComponent {
           5000,
         );
       },
-      error: () => {
-        this.toastService.error('Ошибка', `Не удалось переместить книгу "${bookTitle}"`);
-      },
     });
-  }
-
-  clearError(): void {
-    this.bookService.clearError();
   }
 
   openDeleteDialog(id: string): void {
@@ -73,9 +76,6 @@ export class WishlistComponent {
       .subscribe({
         next: () => {
           this.toastService.success('Книга удалена', `"${bookTitle}" удалена из списка желаний`);
-        },
-        error: () => {
-          this.toastService.error('Ошибка', `Не удалось удалить книгу "${bookTitle}"`);
         },
       });
   }
