@@ -3,18 +3,18 @@
         <div class="d-flex justify-space-between gap-8">
             <h3 class="book-title">{{ book().title }}</h3>
             <div class="book-actions">
-                <button matIconButton [routerLink]="['/book/edit', book().id]" aria-label="Редактировать">
+                <button matIconButton [routerLink]="['/book/edit', book().id]" matTooltip="Редактировать">
                     <mat-icon>edit</mat-icon>
                 </button>
-                <button matIconButton (click)="deleteBook.emit()" aria-label="Удалить">
+                <button matIconButton (click)="deleteBook.emit()" matTooltip="Удалить">
                     <mat-icon>delete</mat-icon>
                 </button>
                 @if (isReaded()) {   
-                    <button matIconButton (click)="moveToWishlist.emit()" aria-label="В Wishlist">
+                    <button matIconButton (click)="moveToWishlist.emit()" matTooltip="В список желаний">
                         <mat-icon>favorite</mat-icon>
                     </button>
                 } @else {
-                    <button matIconButton (click)="moveToRead.emit()" aria-label="Прочитана">
+                    <button matIconButton (click)="moveToRead.emit()" matTooltip="Прочитана">
                         <mat-icon>done_all</mat-icon>
                     </button>
                 }

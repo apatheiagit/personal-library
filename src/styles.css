@@ -106,12 +106,7 @@ body {
   align-items: center;
   
   .count-info {
-    color: var(--n-accent-txt-ic-color);
-    font-size: 0.9rem;
-    
-    strong {
-      font-size: 1.1rem;
-    }
+    font-size: 0.9rem;    
   }
 }
 

@@ -90,7 +90,7 @@ export class BookListComponent implements OnInit{
   }
 
   clearFilters(): void {
-    this.filterService.clearFilters();
+    this.filterService.clearFilters();    
   }
 
   onPageChange(page: number): void {

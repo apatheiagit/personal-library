@@ -109,9 +109,20 @@ export class BookFormComponent  {
     const draft = localStorage.getItem('book_draft');
     if (draft && !this.route.snapshot.paramMap.get('id')) {
       const draftData = JSON.parse(draft);
-      if (confirm('Найден несохраненный черновик. Загрузить?')) {
-        this.bookForm.patchValue(draftData);
-      }
+      const dialogRef = this.dialog.open(
+        DialogComponent, 
+        {
+          data: {
+            title: 'Внимание!',
+            message: 'Найден несохраненный черновик. Загрузить?',
+          },
+        },
+      );
+      dialogRef.afterClosed().subscribe((x) => {
+        if (x)
+          this.bookForm.patchValue(draftData);
+        dialogRef.close();
+      });
     }
   }
 
@@ -215,7 +226,6 @@ export class BookFormComponent  {
         },
       );
       dialogRef.afterClosed().subscribe((x) => {
-        console.log(x);
         if (x) {
           this.router.navigate(['/books']);
         } else {

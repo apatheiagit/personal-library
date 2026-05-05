@@ -58,7 +58,7 @@
             matButton="elevated"
             class="btn-clear"
             [class.show]="hasActiveFilters$ | async"
-            (click)="clearFilters()">
+            (click)="clearFilters(); title.value = ''; author.value = ''; rating.value = undefined;">
             Сбросить фильтр
           </button>
         </div>

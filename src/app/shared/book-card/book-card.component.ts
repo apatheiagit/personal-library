@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Book } from '../../core/models/book.model';
 
 @Component({
   selector: 'app-book-card',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule ],
+  imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule, MatTooltipModule  ],
   templateUrl: './book-card.component.html',
   styleUrls: ['./book-card.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

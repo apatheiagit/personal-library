@@ -25,8 +25,4 @@ export class StatisticsComponent {
     ),
   );
 
-  refresh(): void {
-    this.bookService.refresh();
-  }
-
 }
