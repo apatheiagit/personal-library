@@ -26,6 +26,10 @@ body {
   margin: 0; 
 }
 
+a {
+  color: var(--n-accent-txt-ic-color);
+}
+
 .loading-overlay {
   text-align: center;
   padding: 3rem;
@@ -51,7 +55,7 @@ body {
   padding: 3rem;
   background: var(--n-prim-fill-color);
   border-radius: 12px;
-  
+  margin-top: 24px;
   p {
     font-size: 1.2rem;
     color: var(--n-sec-txt-ic-color);
@@ -213,3 +217,26 @@ app-book-card {
   }
 }
 
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--n-sec-background-fill-color);
+  width: 100%;
+}
+
+.auth-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}

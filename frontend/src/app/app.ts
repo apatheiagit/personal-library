@@ -1,17 +1,17 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { ToastComponent } from './shared/toast/toast.component';
 import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
   imports: [
-    CommonModule,
-    RouterLink,
-    RouterLinkActive,
-    RouterOutlet,
-    ToastComponent ],
+    CommonModule, RouterLink, RouterLinkActive, RouterOutlet, ToastComponent,
+    MatButtonModule, MatIconModule, MatMenuModule ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

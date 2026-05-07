@@ -8,16 +8,23 @@
       <a routerLink="/books" routerLinkActive="active">Прочитанные</a>
       <a routerLink="/wishlist" routerLinkActive="active">Хочу прочитать</a>
       <a routerLink="/statistics" routerLinkActive="active">Статистика</a>
-      <button class="btn-logout" (click)="authService.logout()">Выйти</button>
     </div>
     @if (authService.currentUser$ | async; as user) {
-      <div class="user-info">
-        <span>👤 {{ user.name || user.email }}</span>
-      </div>
+      <button
+        matButton="tonal"
+        class="user-info" 
+        [matMenuTriggerFor]="menu"
+      >
+        <mat-icon>account_circle</mat-icon>
+        <span>{{ user.name || user.email }}</span>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="authService.logout()">Выйти</button>
+      </mat-menu>
     }
   </nav>
 }
 
-<main class="container personal-library-container">
+<main class="personal-library-container">
   <router-outlet></router-outlet>
 </main>
