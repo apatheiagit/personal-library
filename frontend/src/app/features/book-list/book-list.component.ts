@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatIconModule } from '@angular/material/icon';
 import { BookService } from '../../core/services/book.service';
 import { FilterService } from '../../core/services/filter.service';
 import { PaginationService } from '../../core/services/pagination.service';
@@ -21,7 +22,7 @@ import { DialogComponent } from '../../shared/dialog/dialog.component';
 @Component({
   selector: 'app-book-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, PaginationComponent, BookCardComponent, MatButtonModule,
+  imports: [CommonModule, RouterModule, PaginationComponent, BookCardComponent, MatButtonModule, MatIconModule,
     MatSelectModule, MatInputModule, MatFormFieldModule, MatProgressSpinnerModule, MatExpansionModule,
    ],
   templateUrl: './book-list.component.html',

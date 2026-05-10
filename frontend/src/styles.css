@@ -2,7 +2,7 @@
   --n-prim-txt-ic-color: #212c3a;
   --n-sec-txt-ic-color: #626974;
   --n-prim-background-fill-color: #F5F5F5;
-  --n-sec-background-fill-color: #444BD4;
+  --n-sec-background-fill-color: #bec2ff;
   --n-prim-fill-color: #FFFFFF;
   --n-sec-fill-color: #e0e0ff;
   --n-ter-fill-color: #e4e1ec;
@@ -28,6 +28,13 @@ body {
 
 a {
   color: var(--n-accent-txt-ic-color);
+}
+
+h2{ 
+  font-size: 1.5rem;
+  @media (max-width: 767px) {
+    font-size: 1.2rem;
+  }
 }
 
 .loading-overlay {
@@ -199,6 +206,16 @@ a {
 .w-100 {
   width: 100%;
 }
+.hidden-xs {
+  @media (max-width: 767px) {
+    display: none !important;
+  }
+}
+.hidden-xl {
+  @media (min-width: 768px) {
+    display: none !important;
+  }
+}
 .mat-mdc-form-field-subscript-wrapper {
   height: 0;
 }
@@ -239,4 +256,11 @@ app-book-card {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
+  width: 100%;
+}
+
+.nav-links .mat-tonal-button {
+  @media (max-width: 767px) {
+    padding: 0 16px;
+  }
 }

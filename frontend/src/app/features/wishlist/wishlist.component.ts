@@ -5,6 +5,7 @@ import { filter, switchMap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { BookService } from '../../core/services/book.service';
 import { ToastService } from '../../core/services/toast.service';
 import { PaginationService } from '../../core/services/pagination.service';
@@ -16,7 +17,7 @@ import { PaginationComponent } from '../../shared/pagination/pagination.componen
 @Component({
   selector: 'app-wishlist',
   standalone: true,
-  imports: [CommonModule, RouterModule, BookCardComponent, 
+  imports: [CommonModule, RouterModule, BookCardComponent, MatIconModule,
     MatProgressSpinnerModule, MatButtonModule, PaginationComponent ],
   templateUrl: './wishlist.component.html',
   styleUrls: ['./wishlist.component.css'],

@@ -1,29 +1,5 @@
 <app-toast />
-@if (authService.isLoggedIn$ | async) {
-  <nav class="navbar">
-    <div class="nav-brand">
-      <img src="logo.svg" alt="Личная библиотека">
-    </div>
-    <div class="nav-links">
-      <a routerLink="/books" routerLinkActive="active">Прочитанные</a>
-      <a routerLink="/wishlist" routerLinkActive="active">Хочу прочитать</a>
-      <a routerLink="/statistics" routerLinkActive="active">Статистика</a>
-    </div>
-    @if (authService.currentUser$ | async; as user) {
-      <button
-        matButton="tonal"
-        class="user-info" 
-        [matMenuTriggerFor]="menu"
-      >
-        <mat-icon>account_circle</mat-icon>
-        <span>{{ user.name || user.email }}</span>
-      </button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item (click)="authService.logout()">Выйти</button>
-      </mat-menu>
-    }
-  </nav>
-}
+<app-header />
 
 <main class="personal-library-container">
   <router-outlet></router-outlet>

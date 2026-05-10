@@ -1,0 +1,32 @@
+@if (authService.isLoggedIn$ | async) {
+  <nav class="navbar">
+    <div class="d-flex gap-24 align-items-center">
+        <div class="nav-brand">
+            <img src="logo.svg" alt="Личная библиотека">
+        </div>
+        <div class="nav-links nav-links-desktop">
+            <a matButton="tonal" routerLink="/books" routerLinkActive="active">Прочитанные</a>
+            <a matButton="tonal" routerLink="/wishlist" routerLinkActive="active">Хочу прочитать</a>
+            <a matButton="tonal" routerLink="/statistics" routerLinkActive="active">Статистика</a>
+        </div>
+    </div>
+    @if (authService.currentUser$ | async; as user) {
+      <button
+        matButton="tonal"
+        class="user-info" 
+        [matMenuTriggerFor]="menu"
+      >
+        <mat-icon>account_circle</mat-icon>
+        <span>{{ user.name || user.email }}</span>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="authService.logout()">Выйти</button>
+      </mat-menu>
+    }
+  </nav>
+  <div class="nav-links nav-links-mobile">
+        <a matButton="tonal" routerLink="/books" routerLinkActive="active">Прочитанные</a>
+        <a matButton="tonal" routerLink="/wishlist" routerLinkActive="active">Хочу прочитать</a>
+        <a matButton="tonal" routerLink="/statistics" routerLinkActive="active">Статистика</a>
+    </div>
+}

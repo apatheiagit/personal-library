@@ -1,7 +1,10 @@
 <div class="wishlist-container container">
   <div class="header d-flex justify-space-between align-items-center m-b-24">
     <h2>Список желаемых книг</h2>
-    <button matButton="elevated" routerLink="/book/add">Добавить книгу</button>
+    <button class="hidden-xs" matButton="elevated" routerLink="/book/add">Добавить книгу</button>
+    <button class="hidden-xl" matMiniFab routerLink="/book/add">
+      <mat-icon>library_add</mat-icon>
+    </button>
   </div>
 
   @if (loading$ | async) {
