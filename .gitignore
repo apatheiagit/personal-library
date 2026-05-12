@@ -1,15 +1,17 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
 # Compiled output
-/dist
+/frontend/dist
+/backend/dist
 /tmp
 /out-tsc
 /bazel-out
 
 # Node
-/node_modules
-npm-debug.log
-yarn-error.log
+/frontend/node_modules
+/backend/node_modules
+/frontend/npm-debug.log
+/frontend/yarn-error.log
 
 # IDEs and editors
 .idea/
@@ -29,14 +31,14 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
-/.angular/cache
-.sass-cache/
-/connect.lock
-/coverage
-/libpeerconnection.log
-testem.log
-/typings
-__screenshots__/
+/frontend/.angular/cache
+/frontend.sass-cache/
+/frontend/connect.lock
+/frontend/coverage
+/frontend/libpeerconnection.log
+/frontendtestem.log
+/frontend/typings
+/frontend__screenshots__/
 
 # System files
 .DS_Store

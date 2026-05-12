@@ -1,0 +1,109 @@
+<div class="book-list-container container p-b-24">
+  <div class="header d-flex justify-space-between align-items-center m-b-24">
+    <h2>Список прочитанных книг</h2>
+    <button class="hidden-xs" matButton="elevated"  routerLink="/book/add">Добавить книгу</button>
+    <button class="hidden-xl" matMiniFab routerLink="/book/add">
+      <mat-icon>library_add</mat-icon>
+    </button>
+  </div>
+
+  <mat-accordion>
+    <mat-expansion-panel (opened)="panelOpenState.set(true)" (closed)="panelOpenState.set(false)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>Фильтр</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="filters-panel">
+        <div class="filters-grid">
+          <div class="filter-group">
+            <mat-form-field>
+              <mat-label>По названию</mat-label>
+              <input
+                matInput
+                type="text" 
+                #title
+                (input)="onTitleSearch(title.value)"
+                placeholder="Название книги..."
+              >
+            </mat-form-field>
+          </div>
+          
+          <div class="filter-group">
+            <mat-form-field>
+              <mat-label>По автору</mat-label>
+              <input
+                matInput
+                type="text" 
+                #author
+                (input)="onAuthorSearch(author.value)"
+                placeholder="Фамилия автора..."
+              />
+            </mat-form-field>
+          </div>
+          
+          <div class="filter-group">
+            <mat-form-field>
+              <mat-label>По оценке</mat-label>
+              <mat-select
+                #rating
+                (selectionChange)="onRatingChange(rating.value)"
+              >
+                <mat-option value="">Все оценки</mat-option>
+                <mat-option value="5">⭐⭐⭐⭐⭐ (5)</mat-option>
+                <mat-option value="4">⭐⭐⭐⭐ (4)</mat-option>
+                <mat-option value="3">⭐⭐⭐ (3)</mat-option>
+                <mat-option value="2">⭐⭐ (2)</mat-option>
+                <mat-option value="1">⭐ (1)</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          
+          <button
+            matButton="elevated"
+            class="btn-clear"
+            [class.show]="hasActiveFilters$ | async"
+            (click)="clearFilters(); title.value = ''; author.value = ''; rating.value = undefined;">
+            Сбросить фильтр
+          </button>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  @if (totalCount$ | async; as totalCount) {
+    <div class="info-bar">
+      <div class="count-info">
+        Найдено книг: <strong>{{ totalCount }}</strong>
+      </div>
+    </div>
+  }
+
+  @if (loading$ | async) {
+    <div class="loading-overlay">
+      <mat-spinner></mat-spinner>
+      <p>Загрузка...</p>
+    </div>
+  } @else {
+    @if ((books$ | async)?.length === 0) {
+      <div class="empty-state">
+        <p>Ничего не найдено</p>
+      </div>
+    }
+    <div class="books-grid">      
+      @for (book of (paginatedBooks$ | async)?.paginatedItems; track book) {
+        <app-book-card
+          [book]="book"
+          [isReaded]="true"
+          (deleteBook)="openDeleteDialog(book.id)"
+          (moveToWishlist)="moveToWishlist(book.id)"
+        ></app-book-card>
+      }      
+    </div>
+    @if ((paginatedBooks$ | async)?.paginationState; as paginationState) {
+      <app-pagination 
+        [paginationState]="paginationState"
+        (pageChange)="onPageChange($event)"
+        (itemsPerPageChange)="onItemsPerPageChange($event)">
+      </app-pagination>
+    }
+  }
+</div>
