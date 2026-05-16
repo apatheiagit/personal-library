@@ -19,7 +19,7 @@
       </div>
     }
     <div class="books-grid">
-      @for (book of (paginatedBooks$ | async)?.paginatedItems; track book) {
+      @for (book of paginatedBooks$ | async; track book.id) {
         <app-book-card
           [book]="book"
           [isReaded]="false"
@@ -28,11 +28,12 @@
         ></app-book-card>
       }
     </div>
-    @if ((paginatedBooks$ | async)?.paginationState; as paginationState) {
+    @if (paginationState$ | async; as paginationState) {
       <app-pagination 
         [paginationState]="paginationState"
+        [loadedCount]="(loadedCount$ | async) || 0"
         (pageChange)="onPageChange($event)"
-        (itemsPerPageChange)="onItemsPerPageChange($event)">
+        (loadMore)="onLoadMore()">
       </app-pagination>
     }
   }

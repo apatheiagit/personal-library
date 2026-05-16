@@ -241,6 +241,13 @@ app-book-card {
   justify-content: center;
   background: var(--n-sec-background-fill-color);
   width: 100%;
+  .logo {
+    padding: 1rem 2rem;
+    width: 360px;
+    img {
+      max-height: 60px;
+    }
+  }
 }
 
 .auth-card {
@@ -263,4 +270,8 @@ app-book-card {
   @media (max-width: 767px) {
     padding: 0 16px;
   }
+}
+
+.personal-library-container {
+  padding-bottom: 2rem;
 }

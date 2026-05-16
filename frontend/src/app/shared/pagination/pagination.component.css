@@ -41,19 +41,7 @@
   }
 }
 
-@media (max-width: 768px) {
-  .pagination-container {
-    .pagination-controls {
-      flex-direction: column;
-      align-items: stretch;
-      
-      .items-per-page {
-        justify-content: center;
-      }
-      
-      .pagination-buttons {
-        justify-content: center;
-      }
-    }
-  }
+.loadmore-container {
+  text-align: center;
+  padding: 0 0 1rem 0;
 }

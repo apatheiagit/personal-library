@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { filter, switchMap } from 'rxjs/operators';
+import { filter, map, switchMap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,14 +31,18 @@ export class WishlistComponent {
   
   loading$ = this.bookService.loading$;
   wishlistBooks$ = this.bookService.wishlistBooks$;
-  paginatedBooks$ = this.paginationService.getPaginationState(this.wishlistBooks$);
+  paginatedResult$ = this.paginationService.getPaginatedWithAccumulation(this.wishlistBooks$);
+  paginatedBooks$ = this.paginatedResult$.pipe(map(result => result.items));
+  paginationState$ = this.paginatedResult$.pipe(map(result => result.paginationState));
+  loadedCount$ = this.paginatedResult$.pipe(map(result => result.items.length));
   
   onPageChange(page: number): void {
     this.paginationService.setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  onItemsPerPageChange(itemsPerPage: number): void {
-    this.paginationService.setItemsPerPage(itemsPerPage);
+  onLoadMore(): void {
+    this.paginationService.loadMore();
   }
 
   moveToRead(id: string): void {

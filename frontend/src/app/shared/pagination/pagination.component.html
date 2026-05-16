@@ -1,11 +1,19 @@
 @if (paginationState.totalPages > 1 || paginationState.totalItems > minItemsPerPage) {
 <div class="pagination-container">
-  <div class="pagination-info">
+  <div class="pagination-info hidden-xs">
     Показано {{ getStartIndex() }} - {{ getEndIndex() }} 
     из {{ paginationState.totalItems }} книг
   </div>
+
+  @if (paginationState.hasMore) {
+    <div class="loadmore-container">
+      <button matButton="elevated" (click)="onLoadMore()">
+        Загрузить еще
+      </button>
+    </div>
+  }
   
-  <div class="pagination-controls">
+  <div class="pagination-controls hidden-xs">
     <div class="pagination-buttons">
       <button
         matIconButton         
@@ -47,5 +55,6 @@
       </button>
     </div>
   </div>
+
 </div>
 }

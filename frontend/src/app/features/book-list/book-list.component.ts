@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, signal, OnDestroy, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { combineLatest, filter, map, shareReplay, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
@@ -29,12 +30,13 @@ import { DialogComponent } from '../../shared/dialog/dialog.component';
   styleUrls: ['./book-list.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BookListComponent implements OnInit{
+export class BookListComponent implements OnInit, OnDestroy{
   readonly dialog = inject(MatDialog);
   private bookService = inject(BookService);
   private filterService = inject(FilterService);
   private paginationService = inject(PaginationService);
   private toastService = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
   loading$ = this.bookService.loading$;
   books$ = this.bookService.filterBooks(this.filterService.filters$);
@@ -65,16 +67,27 @@ export class BookListComponent implements OnInit{
     }),
     shareReplay(1),
   );
+  paginatedResult$ = this.paginationService.getPaginatedWithAccumulation(this.filteredBooks$);
   hasActiveFilters$ = this.filterService.hasActiveFilters$;
-  paginatedBooks$ = this.paginationService.getPaginationState(this.filteredBooks$);
+  paginatedBooks$ = this.paginatedResult$.pipe(map(result => result.items));
+  newItems$ = this.paginatedResult$.pipe(map(result => result.newItems));
+  paginationState$ = this.paginatedResult$.pipe(map(result => result.paginationState));
+  loadedCount$ = this.paginatedResult$.pipe(map(result => result.items.length));
   totalCount$ = this.filteredBooks$.pipe(
     map(books => books.length),
   );
 
-   ngOnInit(): void {
-    this.filterService.filters$.subscribe(() => {
+  ngOnInit(): void {
+    this.filterService.filters$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => {
       this.paginationService.resetPagination();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.filterService.clearFilters();
+    this.paginationService.resetPagination();
   }
 
   onTitleSearch(title: string): void {
@@ -91,15 +104,17 @@ export class BookListComponent implements OnInit{
   }
 
   clearFilters(): void {
-    this.filterService.clearFilters();    
+    this.filterService.clearFilters();
+    this.toastService.info('Фильтры сброшены', 'Все фильтры были очищены');
   }
 
   onPageChange(page: number): void {
     this.paginationService.setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  onItemsPerPageChange(itemsPerPage: number): void {
-    this.paginationService.setItemsPerPage(itemsPerPage);
+  onLoadMore(): void {
+    this.paginationService.loadMore();
   }
 
   moveToWishlist(id: string): void {

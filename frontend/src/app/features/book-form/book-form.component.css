@@ -1,6 +1,6 @@
 .book-form-container {
   max-width: 600px;
-  margin: 0 auto;
+  margin: 2rem auto;
   background: var(--n-prim-fill-color);
   padding: 2rem;
   border-radius: 12px;

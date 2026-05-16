@@ -15,10 +15,9 @@ import { PaginationState } from '../../core/services/pagination.service';
 })
 export class PaginationComponent {
   @Input() paginationState!: PaginationState;
+  @Input() loadedCount = 0;
   @Output() pageChange = new EventEmitter<number>();
-  @Output() itemsPerPageChange = new EventEmitter<number>();
-  
-  itemsPerPageOptions = [9, 18, 36];
+  @Output() loadMore = new EventEmitter<void>();
 
   readonly minItemsPerPage = 9;
   
@@ -55,23 +54,20 @@ export class PaginationComponent {
       this.pageChange.emit(page);
     }
   }
-  
-  onItemsPerPageChange(value: number): void {
-    this.itemsPerPageChange.emit(value);
-  }
 
   getStartIndex(): number {
-    return (this.paginationState.currentPage - 1) * this.paginationState.itemsPerPage + 1;
+    return 1;
   }
   
   getEndIndex(): number {
-    return Math.min(
-      this.paginationState.currentPage * this.paginationState.itemsPerPage,
-      this.paginationState.totalItems,
-    );
+    return this.loadedCount;
   }
   
   isDot(page: number): boolean {
     return page === -1;
+  }
+
+  onLoadMore(): void {
+    this.loadMore.emit();
   }
 }

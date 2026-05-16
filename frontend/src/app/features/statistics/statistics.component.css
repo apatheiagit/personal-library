@@ -52,7 +52,7 @@
         gap: 1rem;
 
         .year-label {
-          width: 80px;
+          width: 40px;
           font-weight: 600;
         }
 
@@ -73,7 +73,7 @@
             min-width: 30px;
             color: var(--n-prim-fill-color);
             font-weight: 500;
-            padding: 4px 8px;
+            padding: 5px 4px;
             display: block;
           }
         }
