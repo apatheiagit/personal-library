@@ -43,6 +43,16 @@ export class BooksService {
     });
   }
 
+  async patchBook(id: string, userId: string, data: UpdateBookDTO) {
+    // Проверяем существование книги
+    await this.getBookById(id, userId);
+
+    return prisma.book.update({
+      where: { id },
+      data
+    });
+  }
+
   async deleteBook(id: string, userId: string) {
     // Проверяем существование книги
     await this.getBookById(id, userId);

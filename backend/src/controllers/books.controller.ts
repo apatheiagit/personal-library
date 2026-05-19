@@ -46,6 +46,17 @@ export class BooksController {
     }
   }
 
+  async patchBook(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const data: UpdateBookDTO = req.body;
+      const book = await booksService.patchBook(id, req.userId!, data);
+      res.json(book);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async deleteBook(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;

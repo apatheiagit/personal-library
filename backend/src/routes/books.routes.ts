@@ -14,6 +14,7 @@ router.get('/wishlist', booksController.getWishlistBooks.bind(booksController));
 router.get('/statistics', booksController.getStatistics.bind(booksController));
 router.get('/:id', booksController.getBookById.bind(booksController));
 router.post('/', booksController.createBook.bind(booksController));
+router.patch('/:id', booksController.patchBook.bind(booksController));
 router.put('/:id', booksController.updateBook.bind(booksController));
 router.delete('/:id', booksController.deleteBook.bind(booksController));
 
